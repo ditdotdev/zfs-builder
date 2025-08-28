@@ -304,7 +304,7 @@ function compile_and_load_zfs() {
   docker run --rm -v $dstdir:/build \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -e ZFS_VERSION=zfs-$(get_zfs_build_version) \
-    -e ZFS_CONFIG=kernel titandata/zfs-builder:latest || {
+    -e ZFS_CONFIG=kernel datadatdat/zfs-builder:latest || {
       if command -v log_error >/dev/null 2>&1; then
         log_error "ZFS build failed"
       else
