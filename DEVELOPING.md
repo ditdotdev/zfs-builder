@@ -59,7 +59,7 @@ every known platform.
 
 ## Releasing
 
- This repository is connected to the [titandata](https://hub.docker.com/u/titandata)
+ This repository is connected to the [datadatdat](https://hub.docker.com/u/datadatdat)
  DockerHub organization via GitHub actions. It uses the standard DockerHub
  build infrastructure to automatically build new images:
 
