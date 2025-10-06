@@ -4,12 +4,17 @@
 
 # Used to create datadatdat/zfs-builder:latest. Until we update Docker Hub, use this locally to build datadatdat/zfs-builder:latest container.
 
-FROM ubuntu:bionic
+FROM ubuntu:jammy
 
 ARG KERNEL_RELEASE=
 ARG KERNEL_UNAME=
 ARG ZFS_VERSION=
 
+RUN apt-get update
+
+# Enable universe repository for additional packages
+RUN apt-get install -y software-properties-common
+RUN add-apt-repository universe
 RUN apt-get update
 
 # Tools to fetch and build source
@@ -23,13 +28,13 @@ RUN apt-get install -y                                                       \
 
 # Python is not strictly required for ZFS, but eliminates a number of warnings
 RUN apt-get install -y                                                       \
-    python3 python3-distutils
+    python3 python3-dev python3-setuptools
 
 # Linuxkit binaries (such as fixdep) require musl
 RUN apt-get install -y musl
 
 # Tar can fail sometimes on overlayfs, use bsdtar as a workaround
-RUN apt-get install -y bsdtar
+RUN apt-get install -y libarchive-tools
 
 # Add required tools for kernel building and WSL2 custom kernel compilation
 RUN apt-get install -y build-essential libncurses-dev bison flex libssl-dev   \
