@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Custom ZFS compatibility script for Docker Desktop 2.1.0.5 with ZFS 0.8.2
+# Custom ZFS compatibility script for Docker Desktop with ZFS 2.3.4
 #
 
 # Modified minimum ZFS version for legacy compatibility
@@ -20,7 +20,7 @@ function get_zfs_build_version() {
     echo "2.1.5"
   else
     # Traditional environments - use stable version
-    echo "0.8.2"  
+    echo "2.3.4"  
   fi
 }
 
