@@ -142,7 +142,7 @@ if check_zfs_availability; then
     # Try to install from packages first
     if check_zfs_packages && install_zfs_packages; then
         # Create marker file to inform build script we're doing userspace-only
-        touch /build/.zfs-userspace-only
+        mkdir -p /build && touch /build/.zfs-userspace-only
         echo "✓ ZFS userspace tools installed from packages"
         exit 0
     else
@@ -182,7 +182,7 @@ sh ./autogen.sh
 if check_zfs_availability; then
     echo "Building userspace tools only (kernel support already available)"
     build_config="user"
-    touch /build/.zfs-userspace-only
+    mkdir -p /build && touch /build/.zfs-userspace-only
 else
     echo "Attempting to configure ZFS for kernel modules..."
     build_config="${ZFS_CONFIG:-kernel}"
@@ -233,7 +233,7 @@ else
     export ZFS_CONFIG=user
     
     # Create marker file to inform build script we're doing userspace-only
-    touch /build/.zfs-userspace-only
+    mkdir -p /build && touch /build/.zfs-userspace-only
     
     ./configure \
         --prefix=/ \
