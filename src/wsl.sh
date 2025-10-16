@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright The Titan Project Contributors.
+# Copyright The Datadatdat Project Contributors.
 #
 
 #
@@ -12,7 +12,7 @@
 # Based on: https://github.com/alexhaydock/zfs-on-wsl
 #
 
-KERNELSUFFIX="titan-zfs"
+KERNELSUFFIX="Datadatdat-zfs"
 KERNELDIR="/opt/wsl2-kernel"
 ZFSDIR="/opt/wsl2-zfs"
 
@@ -119,7 +119,7 @@ function get_zfs_builtin() {
     # Create ZFS directory
     mkdir -p $ZFSDIR
     
-    # Use same ZFS version as configured for Titan
+    # Use same ZFS version as configured for Datadatdat
     UPSTREAMZFSVER=${ZFS_VERSION:-zfs-2.1.5}
     
     # Clone ZFS source if not exists

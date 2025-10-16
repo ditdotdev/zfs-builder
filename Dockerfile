@@ -1,5 +1,5 @@
 #
-# Copyright The Titan Project Contributors.
+# Copyright Datadatdat.
 #
 
 # Used to create datadatdat/zfs-builder:latest. Until we update Docker Hub, use this locally to build datadatdat/zfs-builder:latest container.

@@ -56,7 +56,7 @@ function zfs_version_matches() {
 
 function get_asset_url() {
   local asset_name=$1
-  echo "https://download.titan-data.io/zfs-releases/$asset_name"
+  echo "https://download.Datadatdat-data.io/zfs-releases/$asset_name"
 }
 
 function is_zfs_loaded() {
@@ -284,7 +284,7 @@ function compile_and_load_zfs() {
     mkdir -p $install_dir
     echo "builtin" > $install_dir/installed_zfs
     
-    # Create fake module structure to satisfy Titan's load_zfs_module function
+    # Create fake module structure to satisfy Datadatdat's load_zfs_module function
     mkdir -p "$dstdir/lib/modules/$(uname -r)/kernel/fs/zfs"
     # Create a dummy zfs.ko file that indicates built-in
     echo "# ZFS built into kernel" > "$dstdir/lib/modules/$(uname -r)/kernel/fs/zfs/zfs.ko"
@@ -335,7 +335,7 @@ function compile_and_load_zfs() {
     # Check if ZFS is actually available in the kernel
     if is_zfs_loaded; then
       echo "Built-in ZFS detected and working"
-      # Create fake module structure for Titan's satisfaction
+      # Create fake module structure for Datadatdat's satisfaction
       mkdir -p "$dstdir/lib/modules/$(uname -r)/kernel/fs/zfs"
       echo "# ZFS built into kernel" > "$dstdir/lib/modules/$(uname -r)/kernel/fs/zfs/zfs.ko"
       echo $dstdir > $install_dir/installed_zfs
