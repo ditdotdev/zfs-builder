@@ -53,7 +53,7 @@ RUN add-apt-repository \
    $(lsb_release -cs) \
    stable"
 RUN apt-get update
-RUN apt-get -y install docker-ce
+RUN apt-get -y install docker-ce-cli
 
 RUN mkdir /src
 RUN mkdir /build
