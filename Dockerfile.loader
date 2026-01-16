@@ -1,0 +1,13 @@
+FROM alpine:3.22
+
+
+# Copy ZFS modules from the main image
+COPY --from=datadatdat/docker-desktop-zfs-kernel:6.12.54 /lib/modules/ /lib/modules/
+
+
+# Install kmod for modprobe
+RUN apk add --no-cache kmod
+
+
+# Load ZFS module
+CMD ["/sbin/modprobe", "zfs"]
