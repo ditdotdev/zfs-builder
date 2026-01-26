@@ -48,13 +48,27 @@ function get_kernel() {
     if apt-cache show linux-source-$KERNEL_MAJOR_MINOR >/dev/null 2>&1; then
         echo "Found linux-source-$KERNEL_MAJOR_MINOR"
         safe_apt_get linux-source-$KERNEL_MAJOR_MINOR
-        cd /usr/src && tar -xjf linux-source-$KERNEL_MAJOR_MINOR.tar.bz2
-        KERNEL_SRC=/usr/src/linux-source-$KERNEL_MAJOR_MINOR
+        # Find the actual tar file that was created (may have full version in name)
+        TARBALL=$(ls /usr/src/linux-source-*.tar.bz2 | head -n1)
+        if [ -n "$TARBALL" ]; then
+            cd /usr/src && tar -xjf $(basename $TARBALL)
+            KERNEL_SRC=$(echo $TARBALL | sed 's/.tar.bz2$//')
+        else
+            echo "ERROR: No linux-source tarball found in /usr/src"
+            exit 1
+        fi
     elif apt-cache show linux-source-$KERNEL_VERSION >/dev/null 2>&1; then
         echo "Found linux-source-$KERNEL_VERSION"
         safe_apt_get linux-source-$KERNEL_VERSION
-        cd /usr/src && tar -xjf linux-source-$KERNEL_VERSION.tar.bz2
-        KERNEL_SRC=/usr/src/linux-source-$KERNEL_VERSION
+        # Find the actual tar file that was created
+        TARBALL=$(ls /usr/src/linux-source-*.tar.bz2 | head -n1)
+        if [ -n "$TARBALL" ]; then
+            cd /usr/src && tar -xjf $(basename $TARBALL)
+            KERNEL_SRC=$(echo $TARBALL | sed 's/.tar.bz2$//')
+        else
+            echo "ERROR: No linux-source tarball found in /usr/src"
+            exit 1
+        fi
     else
         echo "linux-source not available, using headers only"
         KERNEL_SRC=/lib/modules/$KERNEL_RELEASE/build
