@@ -34,6 +34,15 @@ function get_kernel() {
     
     # Extract major.minor version (e.g., 6.8.0 -> 6.8) for source package lookup
     KERNEL_MAJOR_MINOR=$(echo $KERNEL_VERSION | cut -d. -f1,2)
+    KERNEL_MAJOR=$(echo $KERNEL_VERSION | cut -d. -f1)
+    
+    # Kernel 6.8+ requires Ubuntu 24.04 (noble) repos
+    if [[ $KERNEL_MAJOR -ge 6 ]] && [[ $(echo $KERNEL_VERSION | cut -d. -f2) -ge 8 ]]; then
+        echo "Kernel $KERNEL_VERSION requires noble (24.04) repos, adding them..."
+        echo "deb http://archive.ubuntu.com/ubuntu noble main restricted universe" >> /etc/apt/sources.list
+        echo "deb http://archive.ubuntu.com/ubuntu noble-updates main restricted universe" >> /etc/apt/sources.list
+        apt-get update
+    fi
     
     # Try with major.minor first (newer format), fall back to full version
     if apt-cache show linux-source-$KERNEL_MAJOR_MINOR >/dev/null 2>&1; then
