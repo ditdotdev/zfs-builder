@@ -45,10 +45,19 @@ function get_kernel() {
         KERNEL_SRC=/lib/modules/$KERNEL_RELEASE/build
         KERNEL_OBJ=/lib/modules/$KERNEL_RELEASE/build
         
-        # Prepare the headers directory for module building
-        echo "Preparing headers with make modules_prepare..."
-        cd $KERNEL_SRC
-        make modules_prepare
+        # Verify the headers have the necessary config
+        if [ ! -f "$KERNEL_SRC/.config" ]; then
+            echo "ERROR: .config not found in headers at $KERNEL_SRC"
+            exit 1
+        fi
+        
+        # Check if CONFIG_MODULES is enabled
+        if ! grep -q "^CONFIG_MODULES=y" "$KERNEL_SRC/.config"; then
+            echo "ERROR: CONFIG_MODULES not enabled in headers .config"
+            exit 1
+        fi
+        
+        echo "Headers verified with CONFIG_MODULES=y"
     # Try with major.minor first (newer format), fall back to full version
     elif apt-cache show linux-source-$KERNEL_MAJOR_MINOR >/dev/null 2>&1; then
         echo "Found linux-source-$KERNEL_MAJOR_MINOR"
