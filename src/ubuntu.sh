@@ -36,11 +36,13 @@ function get_kernel() {
     KERNEL_MAJOR_MINOR=$(echo $KERNEL_VERSION | cut -d. -f1,2)
     
     # Try with major.minor first (newer format), fall back to full version
-    if apt-cache show linux-source-$KERNEL_MAJOR_MINOR &>/dev/null; then
+    if apt-cache show linux-source-$KERNEL_MAJOR_MINOR >/dev/null 2>&1; then
+        echo "Found linux-source-$KERNEL_MAJOR_MINOR"
         safe_apt_get linux-source-$KERNEL_MAJOR_MINOR
         cd /usr/src && tar -xjf linux-source-$KERNEL_MAJOR_MINOR.tar.bz2
         KERNEL_SRC=/usr/src/linux-source-$KERNEL_MAJOR_MINOR
-    elif apt-cache show linux-source-$KERNEL_VERSION &>/dev/null; then
+    elif apt-cache show linux-source-$KERNEL_VERSION >/dev/null 2>&1; then
+        echo "Found linux-source-$KERNEL_VERSION"
         safe_apt_get linux-source-$KERNEL_VERSION
         cd /usr/src && tar -xjf linux-source-$KERNEL_VERSION.tar.bz2
         KERNEL_SRC=/usr/src/linux-source-$KERNEL_VERSION
