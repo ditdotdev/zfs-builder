@@ -30,7 +30,7 @@ function safe_apt_get() {
 function get_kernel() {
     apt-get update
     # Install build tools needed for kernel preparation
-    safe_apt_get build-essential bc bison flex libelf-dev libssl-dev
+    safe_apt_get build-essential bc bison flex libelf-dev libssl-dev gcc-12
     safe_apt_get linux-modules-$KERNEL_RELEASE
     safe_apt_get linux-headers-$KERNEL_RELEASE
     
