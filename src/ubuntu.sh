@@ -29,6 +29,8 @@ function safe_apt_get() {
 #
 function get_kernel() {
     apt-get update
+    # Install build tools needed for kernel preparation
+    safe_apt_get build-essential bc bison flex libelf-dev libssl-dev
     safe_apt_get linux-modules-$KERNEL_RELEASE
     safe_apt_get linux-headers-$KERNEL_RELEASE
     
@@ -54,7 +56,13 @@ function get_kernel() {
             # Prepare the kernel source with config from headers
             echo "Preparing kernel source with config from headers..."
             cp /lib/modules/$KERNEL_RELEASE/build/.config $KERNEL_SRC/
-            cd $KERNEL_SRC && make modules_prepare
+            cd $KERNEL_SRC
+            make scripts
+            make modules_prepare
+            # Copy Module.symvers if it exists in headers
+            if [ -f /lib/modules/$KERNEL_RELEASE/build/Module.symvers ]; then
+                cp /lib/modules/$KERNEL_RELEASE/build/Module.symvers $KERNEL_SRC/
+            fi
             # Use prepared source for both src and obj
             KERNEL_OBJ=$KERNEL_SRC
         else
@@ -72,7 +80,13 @@ function get_kernel() {
             # Prepare the kernel source with config from headers
             echo "Preparing kernel source with config from headers..."
             cp /lib/modules/$KERNEL_RELEASE/build/.config $KERNEL_SRC/
-            cd $KERNEL_SRC && make modules_prepare
+            cd $KERNEL_SRC
+            make scripts
+            make modules_prepare
+            # Copy Module.symvers if it exists in headers
+            if [ -f /lib/modules/$KERNEL_RELEASE/build/Module.symvers ]; then
+                cp /lib/modules/$KERNEL_RELEASE/build/Module.symvers $KERNEL_SRC/
+            fi
             # Use prepared source for both src and obj
             KERNEL_OBJ=$KERNEL_SRC
         else
