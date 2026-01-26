@@ -36,16 +36,14 @@ function get_kernel() {
     KERNEL_MAJOR_MINOR=$(echo $KERNEL_VERSION | cut -d. -f1,2)
     KERNEL_MAJOR=$(echo $KERNEL_VERSION | cut -d. -f1)
     
-    # Kernel 6.8+ requires Ubuntu 24.04 (noble) repos
-    if [[ $KERNEL_MAJOR -ge 6 ]] && [[ $(echo $KERNEL_VERSION | cut -d. -f2) -ge 8 ]]; then
-        echo "Kernel $KERNEL_VERSION requires noble (24.04) repos, adding them..."
-        echo "deb http://archive.ubuntu.com/ubuntu noble main restricted universe" >> /etc/apt/sources.list
-        echo "deb http://archive.ubuntu.com/ubuntu noble-updates main restricted universe" >> /etc/apt/sources.list
-        apt-get update
-    fi
-    
+    # For HWE kernels (like 6.8.0-64 backported to 22.04), the headers contain
+    # everything needed. Skip linux-source which would have version mismatch.
+    if [[ $KERNEL_RELEASE =~ ^6\.8\.0-[0-9]+-generic$ ]]; then
+        echo "Detected HWE kernel $KERNEL_RELEASE, using headers only (no linux-source)"
+        KERNEL_SRC=/lib/modules/$KERNEL_RELEASE/build
+        KERNEL_OBJ=/lib/modules/$KERNEL_RELEASE/build
     # Try with major.minor first (newer format), fall back to full version
-    if apt-cache show linux-source-$KERNEL_MAJOR_MINOR >/dev/null 2>&1; then
+    elif apt-cache show linux-source-$KERNEL_MAJOR_MINOR >/dev/null 2>&1; then
         echo "Found linux-source-$KERNEL_MAJOR_MINOR"
         safe_apt_get linux-source-$KERNEL_MAJOR_MINOR
         # Find the actual tar file that was created (may have full version in name)
