@@ -44,6 +44,11 @@ function get_kernel() {
         echo "Detected HWE kernel $KERNEL_RELEASE, using headers only (no linux-source)"
         KERNEL_SRC=/lib/modules/$KERNEL_RELEASE/build
         KERNEL_OBJ=/lib/modules/$KERNEL_RELEASE/build
+        
+        # Prepare the headers directory for module building
+        echo "Preparing headers with make modules_prepare..."
+        cd $KERNEL_SRC
+        make modules_prepare
     # Try with major.minor first (newer format), fall back to full version
     elif apt-cache show linux-source-$KERNEL_MAJOR_MINOR >/dev/null 2>&1; then
         echo "Found linux-source-$KERNEL_MAJOR_MINOR"
