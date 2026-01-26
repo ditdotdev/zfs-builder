@@ -57,6 +57,8 @@ function get_kernel() {
             echo "Preparing kernel source with config from headers..."
             cp /lib/modules/$KERNEL_RELEASE/build/.config $KERNEL_SRC/
             cd $KERNEL_SRC && make modules_prepare
+            # Use prepared source for both src and obj
+            KERNEL_OBJ=$KERNEL_SRC
         else
             echo "ERROR: No linux-source tarball found in /usr/src"
             exit 1
@@ -73,6 +75,8 @@ function get_kernel() {
             echo "Preparing kernel source with config from headers..."
             cp /lib/modules/$KERNEL_RELEASE/build/.config $KERNEL_SRC/
             cd $KERNEL_SRC && make modules_prepare
+            # Use prepared source for both src and obj
+            KERNEL_OBJ=$KERNEL_SRC
         else
             echo "ERROR: No linux-source tarball found in /usr/src"
             exit 1
@@ -80,9 +84,8 @@ function get_kernel() {
     else
         echo "linux-source not available, using headers only"
         KERNEL_SRC=/lib/modules/$KERNEL_RELEASE/build
+        KERNEL_OBJ=/lib/modules/$KERNEL_RELEASE/build
     fi
-    
-    KERNEL_OBJ=/lib/modules/$KERNEL_RELEASE/build
 }
 
 function build() {
