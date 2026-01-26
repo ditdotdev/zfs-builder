@@ -53,6 +53,10 @@ function get_kernel() {
         if [ -n "$TARBALL" ]; then
             cd /usr/src && tar -xjf $(basename $TARBALL)
             KERNEL_SRC=$(echo $TARBALL | sed 's/.tar.bz2$//')
+            # Prepare the kernel source with config from headers
+            echo "Preparing kernel source with config from headers..."
+            cp /lib/modules/$KERNEL_RELEASE/build/.config $KERNEL_SRC/
+            cd $KERNEL_SRC && make modules_prepare
         else
             echo "ERROR: No linux-source tarball found in /usr/src"
             exit 1
@@ -65,6 +69,10 @@ function get_kernel() {
         if [ -n "$TARBALL" ]; then
             cd /usr/src && tar -xjf $(basename $TARBALL)
             KERNEL_SRC=$(echo $TARBALL | sed 's/.tar.bz2$//')
+            # Prepare the kernel source with config from headers
+            echo "Preparing kernel source with config from headers..."
+            cp /lib/modules/$KERNEL_RELEASE/build/.config $KERNEL_SRC/
+            cd $KERNEL_SRC && make modules_prepare
         else
             echo "ERROR: No linux-source tarball found in /usr/src"
             exit 1
