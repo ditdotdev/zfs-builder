@@ -56,7 +56,7 @@ function zfs_version_matches() {
 
 function get_asset_url() {
   local asset_name=$1
-  echo "https://download.datadatdat.com/$asset_name"
+  echo "http://datadatdat-zfs-builds.s3-website-us-west-2.amazonaws.com/$asset_name"
 }
 
 function is_zfs_loaded() {
@@ -124,15 +124,7 @@ function get_precompiled_module_url() {
 function extract_precompiled_module() {
   local asset_url=$1
   local dstdir=$2
-  
-  # Try primary URL first
-  if ! curl -fsSL $asset_url > $dstdir/zfs.tar.gz 2>/dev/null; then
-    # Fallback to direct S3 URL if DNS not propagated yet
-    local filename=$(basename $asset_url)
-    local s3_url="http://datadatdat-zfs-builds.s3-website-us-west-2.amazonaws.com/$filename"
-    curl -fsSL $s3_url > $dstdir/zfs.tar.gz || return 1
-  fi
-  
+  curl -fsSL $asset_url > $dstdir/zfs.tar.gz || return 1
   cd $dstdir && tar -xzf zfs.tar.gz || return 1
   rm $dstdir/zfs.tar.gz
   return 0
