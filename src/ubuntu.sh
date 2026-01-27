@@ -38,28 +38,30 @@ function get_kernel() {
     KERNEL_MAJOR_MINOR=$(echo $KERNEL_VERSION | cut -d. -f1,2)
     KERNEL_MAJOR=$(echo $KERNEL_VERSION | cut -d. -f1)
     
-    # For HWE kernels (like 6.8.0-64 backported to 22.04), the headers contain
-    # everything needed. Skip linux-source which would have version mismatch.
-    if [[ $KERNEL_RELEASE =~ ^6\.8\.0-[0-9]+-generic$ ]]; then
-        echo "Detected HWE kernel $KERNEL_RELEASE, using headers only (no linux-source)"
-        KERNEL_SRC=/lib/modules/$KERNEL_RELEASE/build
-        KERNEL_OBJ=/lib/modules/$KERNEL_RELEASE/build
-        
-        # Verify the headers have the necessary config
-        if [ ! -f "$KERNEL_SRC/.config" ]; then
-            echo "ERROR: .config not found in headers at $KERNEL_SRC"
-            exit 1
-        fi
-        
-        # Check if CONFIG_MODULES is enabled
-        if ! grep -q "^CONFIG_MODULES=y" "$KERNEL_SRC/.config"; then
-            echo "ERROR: CONFIG_MODULES not enabled in headers .config"
-            exit 1
-        fi
-        
-        echo "Headers verified with CONFIG_MODULES=y"
-    # Try with major.minor first (newer format), fall back to full version
-    elif apt-cache show linux-source-$KERNEL_MAJOR_MINOR >/dev/null 2>&1; then
+    # For standard Ubuntu kernels (including HWE kernels), the headers package
+    # contains everything needed to build modules. Only use linux-source if
+    # headers are insufficient (which is rare).
+    # The headers are always the correct version matching the running kernel.
+    echo "Using kernel headers from /lib/modules/$KERNEL_RELEASE/build"
+    KERNEL_SRC=/lib/modules/$KERNEL_RELEASE/build
+    KERNEL_OBJ=/lib/modules/$KERNEL_RELEASE/build
+    
+    # Verify the headers have the necessary config
+    if [ ! -f "$KERNEL_SRC/.config" ]; then
+        echo "ERROR: .config not found in headers at $KERNEL_SRC"
+        exit 1
+    fi
+    
+    # Check if CONFIG_MODULES is enabled
+    if ! grep -q "^CONFIG_MODULES=y" "$KERNEL_SRC/.config"; then
+        echo "ERROR: CONFIG_MODULES not enabled in headers .config"
+        exit 1
+    fi
+    
+    echo "Headers verified with CONFIG_MODULES=y at $KERNEL_SRC"
+    
+    # Legacy code path: Try linux-source (kept for reference but shouldn't be needed)
+    if false && apt-cache show linux-source-$KERNEL_MAJOR_MINOR >/dev/null 2>&1; then
         echo "Found linux-source-$KERNEL_MAJOR_MINOR"
         safe_apt_get linux-source-$KERNEL_MAJOR_MINOR
         # Find the actual tar file that was created (may have full version in name)
