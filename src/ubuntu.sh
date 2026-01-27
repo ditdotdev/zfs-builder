@@ -60,13 +60,6 @@ function get_kernel() {
     
     echo "Headers verified with CONFIG_MODULES=y at $KERNEL_SRC"
     
-    # Ensure the headers are fully prepared for module building
-    # This fixes any .config issues and ensures scripts/binaries are built
-    cd $KERNEL_SRC
-    make oldconfig </dev/null 2>/dev/null || true
-    make scripts
-    make modules_prepare
-    
     # Legacy code path: Try linux-source (kept for reference but shouldn't be needed)
     if false && apt-cache show linux-source-$KERNEL_MAJOR_MINOR >/dev/null 2>&1; then
         echo "Found linux-source-$KERNEL_MAJOR_MINOR"
