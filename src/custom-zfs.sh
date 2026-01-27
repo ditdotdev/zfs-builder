@@ -56,7 +56,7 @@ function zfs_version_matches() {
 
 function get_asset_url() {
   local asset_name=$1
-  echo "https://download.datadatdat.com/zfs-releases/$asset_name"
+  echo "https://download.datadatdat.com/$asset_name"
 }
 
 function is_zfs_loaded() {
