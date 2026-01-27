@@ -124,7 +124,15 @@ function get_precompiled_module_url() {
 function extract_precompiled_module() {
   local asset_url=$1
   local dstdir=$2
-  curl -fsSL $asset_url > $dstdir/zfs.tar.gz || return 1
+  
+  # Try primary URL first
+  if ! curl -fsSL $asset_url > $dstdir/zfs.tar.gz 2>/dev/null; then
+    # Fallback to direct S3 URL if DNS not propagated yet
+    local filename=$(basename $asset_url)
+    local s3_url="http://datadatdat-zfs-builds.s3-website-us-west-2.amazonaws.com/$filename"
+    curl -fsSL $s3_url > $dstdir/zfs.tar.gz || return 1
+  fi
+  
   cd $dstdir && tar -xzf zfs.tar.gz || return 1
   rm $dstdir/zfs.tar.gz
   return 0
