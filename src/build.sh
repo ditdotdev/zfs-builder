@@ -102,3 +102,25 @@ fi
 
 . $(dirname $0)/$kernel_type.sh
 build
+
+# Package modules if /output directory is mounted
+if [ -d /output ]; then
+    echo "Packaging ZFS modules for export..."
+    if [ -d /build/lib/modules ]; then
+        ARCH=$(uname -m)
+        case $ARCH in
+            x86_64) ARCH_SUFFIX="amd64" ;;
+            aarch64) ARCH_SUFFIX="arm64" ;;
+            *) ARCH_SUFFIX=$ARCH ;;
+        esac
+        
+        ZFS_VER=$(grep -oP 'VERSION="\K[^"]+' /src/zfs/META 2>/dev/null || echo "unknown")
+        OUTPUT_FILE="/output/zfs-${ZFS_VER}-${KERNEL_RELEASE}-${ARCH_SUFFIX}.tar.gz"
+        
+        echo "Creating $OUTPUT_FILE..."
+        tar -czf "$OUTPUT_FILE" -C /build/lib/modules .
+        echo "✓ Module package created: $(ls -lh $OUTPUT_FILE)"
+    else
+        echo "⚠️  No modules found in /build/lib/modules - skipping packaging"
+    fi
+fi
