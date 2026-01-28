@@ -113,8 +113,16 @@ function load_zfs_module() {
   fi
   
   # Try to load ZFS as a module
-  depmod -b $directory >/dev/null 2>&1
-  modprobe -d $directory zfs >/dev/null 2>&1
+  echo "Running depmod to update module dependencies..."
+  depmod -b $directory 2>&1 | head -5
+  
+  echo "Attempting to load ZFS module from $directory..."
+  if ! modprobe -v -d $directory zfs 2>&1; then
+    echo "modprobe failed - checking module structure:"
+    find $directory/lib/modules/$(uname -r) -name "*.ko" 2>/dev/null | head -10
+    return 1
+  fi
+  return 0
 }
 
 function get_precompiled_module_url() {
