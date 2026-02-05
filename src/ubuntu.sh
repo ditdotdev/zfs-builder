@@ -60,8 +60,9 @@ function get_kernel() {
     
     echo "Headers verified with CONFIG_MODULES=y at $KERNEL_SRC"
     
-    # Legacy code path: Try linux-source (kept for reference but shouldn't be needed)
-    if false && apt-cache show linux-source-$KERNEL_MAJOR_MINOR >/dev/null 2>&1; then
+    # Always use headers - they have the correct symbol versions for the exact kernel build
+    # Legacy linux-source fallback disabled as it causes kernel version mismatches
+    if false; then
         echo "Found linux-source-$KERNEL_MAJOR_MINOR"
         safe_apt_get linux-source-$KERNEL_MAJOR_MINOR
         # Find the actual tar file that was created (may have full version in name)
@@ -85,7 +86,7 @@ function get_kernel() {
             echo "ERROR: No linux-source tarball found in /usr/src"
             exit 1
         fi
-    elif apt-cache show linux-source-$KERNEL_VERSION >/dev/null 2>&1; then
+    elif false; then
         echo "Found linux-source-$KERNEL_VERSION"
         safe_apt_get linux-source-$KERNEL_VERSION
         # Find the actual tar file that was created
