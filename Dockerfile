@@ -4,7 +4,7 @@
 
 # Used to create datadatdat/zfs-builder:latest. Until we update Docker Hub, use this locally to build datadatdat/zfs-builder:latest container.
 
-FROM ubuntu:jammy
+FROM ubuntu:noble
 
 ARG KERNEL_RELEASE=
 ARG KERNEL_UNAME=
