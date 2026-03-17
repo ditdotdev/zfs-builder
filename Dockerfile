@@ -20,7 +20,7 @@ RUN apt-get update
 # Tools to fetch and build source
 RUN apt-get install -y                                                       \
     git	                                                                     \
-    curl xz-utils jq                                                         \
+    curl xz-utils jq cpio                                                    \
     build-essential bc                                                       \
     autoconf automake libtool kmod                                           \
     zlib1g-dev uuid-dev libattr1-dev libblkid-dev libselinux-dev libudev-dev \
