@@ -2,7 +2,7 @@
 # Copyright Datadatdat.
 #
 
-# Used to create datadatdat/zfs-builder:latest. Until we update Docker Hub, use this locally to build datadatdat/zfs-builder:latest container.
+# Used to create datadatdat/zfs-builder:latest. Multi-arch images (amd64/arm64) are built and pushed via .github/workflows/push.yml.
 
 FROM ubuntu:noble
 
