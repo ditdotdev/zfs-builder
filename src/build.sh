@@ -38,12 +38,13 @@ function check_zfs_availability() {
         ZFS_USERSPACE_AVAILABLE=0
     fi
     
-    # Check if we have complete ZFS support
-    if [ "$ZFS_KERNEL_AVAILABLE" = "1" ] && [ "$ZFS_DEVICE_AVAILABLE" = "1" ] && [ "$ZFS_USERSPACE_AVAILABLE" = "1" ]; then
-        echo "🎉 Complete ZFS support detected! No kernel build needed."
+    # Kernel support alone is sufficient to skip the build. Inside a container,
+    # /dev/zfs and zpool won't exist even when ZFS is built into the host kernel.
+    if [ "$ZFS_KERNEL_AVAILABLE" = "1" ]; then
+        echo "ZFS kernel support detected. No kernel build needed."
         return 0
     else
-        echo "⚠️  Incomplete ZFS support detected. Kernel build required."
+        echo "ZFS kernel support not detected. Kernel build required."
         return 1
     fi
 }
