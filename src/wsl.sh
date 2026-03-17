@@ -93,24 +93,20 @@ function get_kernel_src() {
 }
 
 # Prepare kernel source for ZFS compilation
+# This must run before configure_zfs_builtin() so that UTS_RELEASE is defined.
 function prepare_kernel() {
     echo "Preparing kernel source for ZFS compilation..."
-    
+
     cd "$KERNELDIR" || return 1
 
-    # Get the kernel config from current running WSL2 kernel
-    echo "Copying current kernel configuration..."
-    if [ -f /proc/config.gz ]; then
-        zcat /proc/config.gz > .config
-    else
-        echo "Warning: /proc/config.gz not found, using default config"
-        make defconfig
-    fi
-    
-    # Run make prepare to generate necessary headers
+    # Use the WSL2 config shipped in the kernel tree (works in CI without /proc/config.gz)
+    export KCONFIG_CONFIG="Microsoft/config-wsl"
+
+    # Run make prepare to generate necessary headers (including UTS_RELEASE)
     echo "Running make prepare to generate kernel headers..."
+    make olddefconfig
     make prepare
-    
+
     # Run make scripts to build host tools
     echo "Building kernel scripts..."
     make scripts
@@ -279,6 +275,7 @@ function build() {
 
     install_dependencies
     get_kernel_src
+    prepare_kernel
     get_zfs_builtin
     configure_zfs_builtin
     build_kernel
