@@ -7,12 +7,16 @@ set -xe
 
 . $(dirname $0)/common.sh
 
+# Configurable system paths for testing. Default to real paths.
+: "${ZFS_PROC_FILESYSTEMS:=/proc/filesystems}"
+: "${ZFS_DEV_ZFS:=/dev/zfs}"
+
 # Check if ZFS is already available in the system
 function check_zfs_availability() {
     echo "Checking if ZFS is already available..."
-    
+
     # Check if ZFS filesystem is supported in kernel
-    if grep -q "^nodev.*zfs" /proc/filesystems 2>/dev/null; then
+    if grep -q "^nodev.*zfs" "$ZFS_PROC_FILESYSTEMS" 2>/dev/null; then
         echo "✓ ZFS kernel support detected"
         ZFS_KERNEL_AVAILABLE=1
     else
@@ -21,7 +25,7 @@ function check_zfs_availability() {
     fi
     
     # Check if ZFS device node exists
-    if [ -c /dev/zfs ]; then
+    if [ -c "$ZFS_DEV_ZFS" ]; then
         echo "✓ ZFS device node (/dev/zfs) available"
         ZFS_DEVICE_AVAILABLE=1
     else
