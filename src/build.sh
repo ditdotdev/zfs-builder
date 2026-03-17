@@ -5,14 +5,19 @@
 
 set -xe
 
-. $(dirname $0)/common.sh
+# shellcheck source=common.sh
+. "$(dirname "$0")/common.sh"
+
+# Configurable system paths for testing. Default to real paths.
+: "${ZFS_PROC_FILESYSTEMS:=/proc/filesystems}"
+: "${ZFS_DEV_ZFS:=/dev/zfs}"
 
 # Check if ZFS is already available in the system
 function check_zfs_availability() {
     echo "Checking if ZFS is already available..."
-    
+
     # Check if ZFS filesystem is supported in kernel
-    if grep -q "^nodev.*zfs" /proc/filesystems 2>/dev/null; then
+    if grep -q "^nodev.*zfs" "$ZFS_PROC_FILESYSTEMS" 2>/dev/null; then
         echo "✓ ZFS kernel support detected"
         ZFS_KERNEL_AVAILABLE=1
     else
@@ -20,30 +25,13 @@ function check_zfs_availability() {
         ZFS_KERNEL_AVAILABLE=0
     fi
     
-    # Check if ZFS device node exists
-    if [ -c /dev/zfs ]; then
-        echo "✓ ZFS device node (/dev/zfs) available"
-        ZFS_DEVICE_AVAILABLE=1
-    else
-        echo "✗ ZFS device node (/dev/zfs) not found"
-        ZFS_DEVICE_AVAILABLE=0
-    fi
-    
-    # Check if ZFS userspace tools are available
-    if command -v zpool >/dev/null 2>&1; then
-        echo "✓ ZFS userspace tools (zpool) available"
-        ZFS_USERSPACE_AVAILABLE=1
-    else
-        echo "✗ ZFS userspace tools not found"
-        ZFS_USERSPACE_AVAILABLE=0
-    fi
-    
-    # Check if we have complete ZFS support
-    if [ "$ZFS_KERNEL_AVAILABLE" = "1" ] && [ "$ZFS_DEVICE_AVAILABLE" = "1" ] && [ "$ZFS_USERSPACE_AVAILABLE" = "1" ]; then
-        echo "🎉 Complete ZFS support detected! No kernel build needed."
+    # Kernel support alone is sufficient to skip the build. Inside a container,
+    # /dev/zfs and zpool won't exist even when ZFS is built into the host kernel.
+    if [ "$ZFS_KERNEL_AVAILABLE" = "1" ]; then
+        echo "ZFS kernel support detected. No kernel build needed."
         return 0
     else
-        echo "⚠️  Incomplete ZFS support detected. Kernel build required."
+        echo "ZFS kernel support not detected. Kernel build required."
         return 1
     fi
 }
@@ -51,7 +39,7 @@ function check_zfs_availability() {
 function get_kernel_vars() {
     [ -z "$KERNEL_RELEASE" ] && KERNEL_RELEASE=$(uname -r)
     [ -z "$KERNEL_UNAME" ] && KERNEL_UNAME=$(uname -a)
-    KERNEL_VERSION=${KERNEL_RELEASE%%-*}
+    KERNEL_VERSION=${KERNEL_RELEASE%%-*}; export KERNEL_VERSION
     KERNEL_VARIANT=${KERNEL_RELEASE#*-}
 }
 
@@ -84,23 +72,29 @@ function get_kernel_type() {
 if [ "$ZFS_CONFIG" != "user" ]; then
     get_kernel_vars
     kernel_type=$(get_kernel_type)
-    
-    # Check if ZFS is already available before building
-    echo "Starting ZFS availability check..."
-    if check_zfs_availability; then
-        echo "ZFS is already fully available - skipping kernel build"
-        echo "Current kernel: $(uname -r)"
-        echo "ZFS support: COMPLETE"
-        echo "No build required!"
-        exit 0
+
+    # In CI builds, skip the ZFS availability check — we always want to build
+    if [ "${CI_BUILD:-0}" != "1" ]; then
+        # Check if ZFS is already available before building
+        echo "Starting ZFS availability check..."
+        if check_zfs_availability; then
+            echo "ZFS is already fully available - skipping kernel build"
+            echo "Current kernel: $(uname -r)"
+            echo "ZFS support: COMPLETE"
+            echo "No build required!"
+            exit 0
+        fi
+
+        echo "ZFS not fully available - proceeding with kernel build for type: $kernel_type"
+    else
+        echo "CI_BUILD=1: skipping ZFS availability check, proceeding with build for type: $kernel_type"
     fi
-    
-    echo "ZFS not fully available - proceeding with kernel build for type: $kernel_type"
 else
     kernel_type=vanilla
 fi
 
-. $(dirname $0)/$kernel_type.sh
+# shellcheck disable=SC1090
+. "$(dirname "$0")/$kernel_type.sh"
 build
 
 # Package modules if /output directory is mounted
@@ -114,12 +108,12 @@ if [ -d /output ]; then
             *) ARCH_SUFFIX=$ARCH ;;
         esac
         
-        ZFS_VER=$(grep -oP 'VERSION="\K[^"]+' /src/zfs/META 2>/dev/null || echo "unknown")
+        ZFS_VER=$(sed -n 's/^VERSION="\([^"]*\)".*/\1/p' /src/zfs/META 2>/dev/null || echo "unknown")
         OUTPUT_FILE="/output/zfs-${ZFS_VER}-${KERNEL_RELEASE}-${ARCH_SUFFIX}.tar.gz"
-        
+
         echo "Creating $OUTPUT_FILE..."
         tar -czf "$OUTPUT_FILE" -C /build/lib/modules .
-        echo "✓ Module package created: $(ls -lh $OUTPUT_FILE)"
+        echo "✓ Module package created: $(ls -lh "$OUTPUT_FILE")"
     else
         echo "⚠️  No modules found in /build/lib/modules - skipping packaging"
     fi
