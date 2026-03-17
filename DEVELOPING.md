@@ -60,10 +60,10 @@ every known platform.
 ## Releasing
 
  Multi-arch images (linux/amd64 and linux/arm64) are built and pushed to
- Docker Hub via `.github/workflows/push.yml`:
+ Docker Hub via `.github/workflows/release.yml` when a version tag is pushed:
 
-  * Every push to master will update the `:develop` tag
   * Every tagged release (`v*`) will update the `:latest` tag and create a `:[version]` tag
+  * zfs-builder shares the ecosystem version number and is tagged during the release process
 
 New release should be named `v[major].[minor].[patch]`. While there are no
 strict rules, major releases should be reserved for changes that backwards

@@ -2,7 +2,7 @@
 # Copyright Datadatdat.
 #
 
-# Used to create datadatdat/zfs-builder:latest. Multi-arch images (amd64/arm64) are built and pushed via .github/workflows/push.yml.
+# Used to create datadatdat/zfs-builder:latest. Multi-arch images (amd64/arm64) are built and pushed via .github/workflows/release.yml.
 
 FROM ubuntu:noble
 

@@ -1,10 +1,7 @@
-name: Build and Push
+name: Release
 
 on:
-  push:
-    branches: [master]
-    tags: ['v*']
-  workflow_dispatch:
+  create:
 
 permissions:
   contents: read
@@ -13,6 +10,7 @@ jobs:
   build-and-push:
     name: Build and Push Multi-Arch Image
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@v6
 
@@ -31,12 +29,8 @@ jobs:
       - name: Determine tags
         id: tags
         run: |
-          TAGS="datadatdat/zfs-builder:develop"
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            VERSION="${GITHUB_REF#refs/tags/}"
-            TAGS="datadatdat/zfs-builder:latest,datadatdat/zfs-builder:${VERSION}"
-          fi
-          echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
+          VERSION="${GITHUB_REF#refs/tags/}"
+          echo "tags=datadatdat/zfs-builder:latest,datadatdat/zfs-builder:${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push multi-arch image
         uses: docker/build-push-action@v6
