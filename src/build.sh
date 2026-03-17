@@ -5,7 +5,8 @@
 
 set -xe
 
-. $(dirname $0)/common.sh
+# shellcheck source=common.sh
+. "$(dirname "$0")/common.sh"
 
 # Configurable system paths for testing. Default to real paths.
 : "${ZFS_PROC_FILESYSTEMS:=/proc/filesystems}"
@@ -24,24 +25,6 @@ function check_zfs_availability() {
         ZFS_KERNEL_AVAILABLE=0
     fi
     
-    # Check if ZFS device node exists
-    if [ -c "$ZFS_DEV_ZFS" ]; then
-        echo "✓ ZFS device node (/dev/zfs) available"
-        ZFS_DEVICE_AVAILABLE=1
-    else
-        echo "✗ ZFS device node (/dev/zfs) not found"
-        ZFS_DEVICE_AVAILABLE=0
-    fi
-    
-    # Check if ZFS userspace tools are available
-    if command -v zpool >/dev/null 2>&1; then
-        echo "✓ ZFS userspace tools (zpool) available"
-        ZFS_USERSPACE_AVAILABLE=1
-    else
-        echo "✗ ZFS userspace tools not found"
-        ZFS_USERSPACE_AVAILABLE=0
-    fi
-    
     # Kernel support alone is sufficient to skip the build. Inside a container,
     # /dev/zfs and zpool won't exist even when ZFS is built into the host kernel.
     if [ "$ZFS_KERNEL_AVAILABLE" = "1" ]; then
@@ -56,7 +39,7 @@ function check_zfs_availability() {
 function get_kernel_vars() {
     [ -z "$KERNEL_RELEASE" ] && KERNEL_RELEASE=$(uname -r)
     [ -z "$KERNEL_UNAME" ] && KERNEL_UNAME=$(uname -a)
-    KERNEL_VERSION=${KERNEL_RELEASE%%-*}
+    KERNEL_VERSION=${KERNEL_RELEASE%%-*}; export KERNEL_VERSION
     KERNEL_VARIANT=${KERNEL_RELEASE#*-}
 }
 
@@ -110,7 +93,8 @@ else
     kernel_type=vanilla
 fi
 
-. $(dirname $0)/$kernel_type.sh
+# shellcheck disable=SC1090
+. "$(dirname "$0")/$kernel_type.sh"
 build
 
 # Package modules if /output directory is mounted
@@ -124,12 +108,12 @@ if [ -d /output ]; then
             *) ARCH_SUFFIX=$ARCH ;;
         esac
         
-        ZFS_VER=$(grep -oP 'VERSION="\K[^"]+' /src/zfs/META 2>/dev/null || echo "unknown")
+        ZFS_VER=$(sed -n 's/^VERSION="\([^"]*\)".*/\1/p' /src/zfs/META 2>/dev/null || echo "unknown")
         OUTPUT_FILE="/output/zfs-${ZFS_VER}-${KERNEL_RELEASE}-${ARCH_SUFFIX}.tar.gz"
-        
+
         echo "Creating $OUTPUT_FILE..."
         tar -czf "$OUTPUT_FILE" -C /build/lib/modules .
-        echo "✓ Module package created: $(ls -lh $OUTPUT_FILE)"
+        echo "✓ Module package created: $(ls -lh "$OUTPUT_FILE")"
     else
         echo "⚠️  No modules found in /build/lib/modules - skipping packaging"
     fi
