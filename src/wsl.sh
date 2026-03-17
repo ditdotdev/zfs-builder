@@ -53,22 +53,28 @@ function get_kernel_src() {
     local version=$KERNEL_VERSION
 
     echo "Fetching Microsoft WSL2 kernel source..."
-    
+
     # Create kernel directory
     mkdir -p $KERNELDIR
-    
-    # Get the latest WSL2 kernel version that matches our running kernel
-    # For WSL2, we want to build against the same version we're running
-    UPSTREAMKERNELVER=$(echo $KERNEL_RELEASE | sed 's/-microsoft-standard-WSL2//')
-    
-    # Try to find matching release tag
-    WSL2_TAG=$(curl -s https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases | \
-        jq -r ".[] | select(.tag_name | contains(\"$UPSTREAMKERNELVER\")) | .tag_name" | head -n1)
-    
-    if [ -z "$WSL2_TAG" ]; then
-        # Fallback to latest release
-        WSL2_TAG=$(curl -s https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases/latest | \
-            jq -r '.tag_name')
+
+    # Use explicit WSL2_KERNEL_TAG if set (CI builds specify exact tag)
+    if [ -n "${WSL2_KERNEL_TAG:-}" ]; then
+        WSL2_TAG="$WSL2_KERNEL_TAG"
+        echo "Using explicit WSL2_KERNEL_TAG: $WSL2_TAG"
+    else
+        # Get the latest WSL2 kernel version that matches our running kernel
+        # For WSL2, we want to build against the same version we're running
+        UPSTREAMKERNELVER=$(echo $KERNEL_RELEASE | sed 's/-microsoft-standard-WSL2//')
+
+        # Try to find matching release tag
+        WSL2_TAG=$(curl -s https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases | \
+            jq -r ".[] | select(.tag_name | contains(\"$UPSTREAMKERNELVER\")) | .tag_name" | head -n1)
+
+        if [ -z "$WSL2_TAG" ]; then
+            # Fallback to latest release
+            WSL2_TAG=$(curl -s https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases/latest | \
+                jq -r '.tag_name')
+        fi
     fi
     
     echo "Using WSL2 kernel version: $WSL2_TAG"
@@ -120,7 +126,7 @@ function get_zfs_builtin() {
     mkdir -p $ZFSDIR
     
     # Use same ZFS version as configured for Datadatdat
-    UPSTREAMZFSVER=${ZFS_VERSION:-zfs-2.1.5}
+    UPSTREAMZFSVER=${ZFS_VERSION:-zfs-2.3.4}
     
     # Clone ZFS source if not exists
     if [ ! -d $ZFSDIR/.git ]; then
@@ -261,21 +267,23 @@ function check_zfs_availability() {
 # Main build function
 function build() {
     echo "Starting WSL2 ZFS kernel support check..."
-    
-    # First check if ZFS kernel support is already available
-    if check_zfs_availability; then
-        echo "ZFS kernel support already available - skipping kernel build"
-        return 0
+
+    # In CI builds, skip the ZFS availability check — we always want to build
+    if [ "${CI_BUILD:-0}" != "1" ]; then
+        # First check if ZFS kernel support is already available
+        if check_zfs_availability; then
+            echo "ZFS kernel support already available - skipping kernel build"
+            return 0
+        fi
     fi
-    
+
     echo "Starting WSL2 custom kernel build with ZFS..."
-    
+
     install_dependencies
     get_kernel_src
-    prepare_kernel
     get_zfs_builtin
     configure_zfs_builtin
     build_kernel
-    
+
     echo "WSL2 kernel with ZFS build complete!"
 }

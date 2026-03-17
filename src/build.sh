@@ -89,18 +89,23 @@ function get_kernel_type() {
 if [ "$ZFS_CONFIG" != "user" ]; then
     get_kernel_vars
     kernel_type=$(get_kernel_type)
-    
-    # Check if ZFS is already available before building
-    echo "Starting ZFS availability check..."
-    if check_zfs_availability; then
-        echo "ZFS is already fully available - skipping kernel build"
-        echo "Current kernel: $(uname -r)"
-        echo "ZFS support: COMPLETE"
-        echo "No build required!"
-        exit 0
+
+    # In CI builds, skip the ZFS availability check — we always want to build
+    if [ "${CI_BUILD:-0}" != "1" ]; then
+        # Check if ZFS is already available before building
+        echo "Starting ZFS availability check..."
+        if check_zfs_availability; then
+            echo "ZFS is already fully available - skipping kernel build"
+            echo "Current kernel: $(uname -r)"
+            echo "ZFS support: COMPLETE"
+            echo "No build required!"
+            exit 0
+        fi
+
+        echo "ZFS not fully available - proceeding with kernel build for type: $kernel_type"
+    else
+        echo "CI_BUILD=1: skipping ZFS availability check, proceeding with build for type: $kernel_type"
     fi
-    
-    echo "ZFS not fully available - proceeding with kernel build for type: $kernel_type"
 else
     kernel_type=vanilla
 fi
