@@ -99,7 +99,6 @@ teardown() {
     check_zfs_availability() { echo "check_zfs_availability" >> "$call_log"; return 0; }
     install_dependencies() { echo "install_dependencies" >> "$call_log"; }
     get_kernel_src() { echo "get_kernel_src" >> "$call_log"; }
-    prepare_kernel() { echo "prepare_kernel" >> "$call_log"; }
     get_zfs_builtin() { echo "get_zfs_builtin" >> "$call_log"; }
     configure_zfs_builtin() { echo "configure_zfs_builtin" >> "$call_log"; }
     build_kernel() { echo "build_kernel" >> "$call_log"; }
@@ -112,7 +111,6 @@ teardown() {
     # But build steps SHOULD have been called
     grep -q "install_dependencies" "$call_log"
     grep -q "get_kernel_src" "$call_log"
-    grep -q "prepare_kernel" "$call_log"
 }
 
 @test "build calls check_zfs_availability when CI_BUILD is not set" {
@@ -135,10 +133,10 @@ teardown() {
 }
 
 # =============================================================================
-# build() — prepare_kernel runs before configure_zfs_builtin (UTS_RELEASE needed)
+# build() — prepare_kernel removed (redundant with build_kernel)
 # =============================================================================
 
-@test "build calls prepare_kernel before configure_zfs_builtin" {
+@test "build does not call prepare_kernel" {
     export CI_BUILD=1
 
     local call_log="$TEST_TMPDIR/call_log"
@@ -154,14 +152,10 @@ teardown() {
     run build
 
     [ "$status" -eq 0 ]
-    # prepare_kernel MUST be called (ZFS configure needs UTS_RELEASE from make prepare)
-    grep -q "prepare_kernel" "$call_log"
-    # Verify ordering: prepare_kernel before get_zfs_builtin before configure_zfs_builtin
-    local prep_line=$(grep -n "prepare_kernel" "$call_log" | head -1 | cut -d: -f1)
-    local zfs_line=$(grep -n "get_zfs_builtin" "$call_log" | head -1 | cut -d: -f1)
-    local conf_line=$(grep -n "configure_zfs_builtin" "$call_log" | head -1 | cut -d: -f1)
-    [ "$prep_line" -lt "$zfs_line" ]
-    [ "$zfs_line" -lt "$conf_line" ]
+    # prepare_kernel should NOT be called
+    ! grep -q "prepare_kernel" "$call_log"
+    # build_kernel should be called (it handles its own prepare)
+    grep -q "build_kernel" "$call_log"
 }
 
 # =============================================================================
