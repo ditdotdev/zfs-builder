@@ -50,29 +50,25 @@ function install_dependencies() {
 
 # Get WSL2 kernel source 
 function get_kernel_src() {
-    echo "Fetching Microsoft WSL2 kernel source..."
+    local version=$KERNEL_VERSION
 
+    echo "Fetching Microsoft WSL2 kernel source..."
+    
     # Create kernel directory
     mkdir -p $KERNELDIR
-
-    # Use explicit WSL2_KERNEL_TAG if set (CI builds specify exact tag)
-    if [ -n "${WSL2_KERNEL_TAG:-}" ]; then
-        WSL2_TAG="$WSL2_KERNEL_TAG"
-        echo "Using explicit WSL2_KERNEL_TAG: $WSL2_TAG"
-    else
-        # Get the latest WSL2 kernel version that matches our running kernel
-        # For WSL2, we want to build against the same version we're running
-        UPSTREAMKERNELVER="${KERNEL_RELEASE%%-microsoft-standard-WSL2}"
-
-        # Try to find matching release tag
-        WSL2_TAG=$(curl -s https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases | \
-            jq -r ".[] | select(.tag_name | contains(\"$UPSTREAMKERNELVER\")) | .tag_name" | head -n1)
-
-        if [ -z "$WSL2_TAG" ]; then
-            # Fallback to latest release
-            WSL2_TAG=$(curl -s https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases/latest | \
-                jq -r '.tag_name')
-        fi
+    
+    # Get the latest WSL2 kernel version that matches our running kernel
+    # For WSL2, we want to build against the same version we're running
+    UPSTREAMKERNELVER=$(echo $KERNEL_RELEASE | sed 's/-microsoft-standard-WSL2//')
+    
+    # Try to find matching release tag
+    WSL2_TAG=$(curl -s https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases | \
+        jq -r ".[] | select(.tag_name | contains(\"$UPSTREAMKERNELVER\")) | .tag_name" | head -n1)
+    
+    if [ -z "$WSL2_TAG" ]; then
+        # Fallback to latest release
+        WSL2_TAG=$(curl -s https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases/latest | \
+            jq -r '.tag_name')
     fi
     
     echo "Using WSL2 kernel version: $WSL2_TAG"
@@ -80,24 +76,24 @@ function get_kernel_src() {
     # Clone Microsoft kernel source if not exists
     if [ ! -d $KERNELDIR/.git ]; then
         echo "Cloning Microsoft WSL2 kernel..."
-        git clone --branch "$WSL2_TAG" --single-branch --depth 1 \
-            https://github.com/microsoft/WSL2-Linux-Kernel.git "$KERNELDIR"
+        git clone --branch $WSL2_TAG --single-branch --depth 1 \
+            https://github.com/microsoft/WSL2-Linux-Kernel.git $KERNELDIR
     else
         echo "Updating existing kernel source..."
-        cd "$KERNELDIR" || return 1
-        git reset --hard && git checkout "$WSL2_TAG" && git pull
+        cd $KERNELDIR
+        git reset --hard && git checkout $WSL2_TAG && git pull
     fi
     
-    KERNEL_SRC=$KERNELDIR; export KERNEL_SRC
-    KERNEL_OBJ=$KERNELDIR; export KERNEL_OBJ
+    KERNEL_SRC=$KERNELDIR
+    KERNEL_OBJ=$KERNELDIR
 }
 
 # Prepare kernel source for ZFS compilation
 function prepare_kernel() {
     echo "Preparing kernel source for ZFS compilation..."
     
-    cd "$KERNELDIR" || return 1
-
+    cd $KERNELDIR
+    
     # Get the kernel config from current running WSL2 kernel
     echo "Copying current kernel configuration..."
     if [ -f /proc/config.gz ]; then
@@ -124,17 +120,17 @@ function get_zfs_builtin() {
     mkdir -p $ZFSDIR
     
     # Use same ZFS version as configured for Datadatdat
-    UPSTREAMZFSVER=${ZFS_VERSION:-zfs-2.3.4}
+    UPSTREAMZFSVER=${ZFS_VERSION:-zfs-2.1.5}
     
     # Clone ZFS source if not exists
     if [ ! -d $ZFSDIR/.git ]; then
         echo "Cloning OpenZFS repository..."
-        git clone --branch "$UPSTREAMZFSVER" --depth 1 \
-            https://github.com/zfsonlinux/zfs.git "$ZFSDIR"
+        git clone --branch $UPSTREAMZFSVER --depth 1 \
+            https://github.com/zfsonlinux/zfs.git $ZFSDIR
     else
         echo "Updating existing ZFS source..."
-        cd "$ZFSDIR" || return 1
-        git reset --hard && git checkout "$UPSTREAMZFSVER" && git pull
+        cd $ZFSDIR
+        git reset --hard && git checkout $UPSTREAMZFSVER && git pull
     fi
 }
 
@@ -142,8 +138,8 @@ function get_zfs_builtin() {
 function configure_zfs_builtin() {
     echo "Configuring ZFS for built-in kernel compilation..."
     
-    cd "$ZFSDIR" || return 1
-
+    cd $ZFSDIR
+    
     # Generate configure script
     sh autogen.sh
     
@@ -171,8 +167,8 @@ function configure_zfs_builtin() {
 function build_kernel() {
     echo "Building WSL2 kernel with ZFS built-in..."
     
-    cd "$KERNELDIR" || return 1
-
+    cd $KERNELDIR
+    
     # Update kernel config with WSL2 defaults and enable ZFS
     export KCONFIG_CONFIG="Microsoft/config-wsl"
     
@@ -218,28 +214,28 @@ function build_kernel() {
     
     # Make kernel available in /out for extraction
     mkdir -p /out
-    cp arch/x86/boot/bzImage "/out/bzImage-${KERNEL_RELEASE}-${KERNELSUFFIX}"
-
+    cp arch/x86/boot/bzImage /out/bzImage-$KERNEL_RELEASE-$KERNELSUFFIX
+    
     # Also try to save directly to Windows filesystem if volume is mounted
     if [ -d /mnt/c/ZFSonWSL ]; then
         echo "Saving kernel directly to Windows filesystem..."
-        cp arch/x86/boot/bzImage "/mnt/c/ZFSonWSL/bzImage-${KERNEL_RELEASE}-${KERNELSUFFIX}"
+        cp arch/x86/boot/bzImage /mnt/c/ZFSonWSL/bzImage-$KERNEL_RELEASE-$KERNELSUFFIX
         cp arch/x86/boot/bzImage /mnt/c/ZFSonWSL/bzImage
-        printf 'Kernel saved to: C:\\ZFSonWSL\\bzImage\n'
+        echo "Kernel saved to: C:\\ZFSonWSL\\bzImage"
     elif [ -d /host/ZFSonWSL ]; then
         echo "Saving kernel to host volume..."
-        cp arch/x86/boot/bzImage "/host/ZFSonWSL/bzImage-${KERNEL_RELEASE}-${KERNELSUFFIX}"
+        cp arch/x86/boot/bzImage /host/ZFSonWSL/bzImage-$KERNEL_RELEASE-$KERNELSUFFIX
         cp arch/x86/boot/bzImage /host/ZFSonWSL/bzImage
         echo "Kernel saved to host volume: /host/ZFSonWSL/bzImage"
     fi
-
-    echo "Custom WSL2 kernel with ZFS available at: /out/bzImage-${KERNEL_RELEASE}-${KERNELSUFFIX}"
+    
+    echo "Custom WSL2 kernel with ZFS available at: /out/bzImage-$KERNEL_RELEASE-$KERNELSUFFIX"
     echo ""
     echo "To use this kernel:"
     echo "1. Copy the kernel to Windows: /mnt/c/ZFSonWSL/bzImage"
     echo "2. Add to .wslconfig:"
     echo "   [wsl2]"
-    printf '   kernel=C:\\ZFSonWSL\\bzImage\n'
+    echo "   kernel=C:\\\\ZFSonWSL\\\\bzImage"
     echo "3. Run: wsl --shutdown"
     echo "4. Restart WSL2"
 }
@@ -265,23 +261,21 @@ function check_zfs_availability() {
 # Main build function
 function build() {
     echo "Starting WSL2 ZFS kernel support check..."
-
-    # In CI builds, skip the ZFS availability check — we always want to build
-    if [ "${CI_BUILD:-0}" != "1" ]; then
-        # First check if ZFS kernel support is already available
-        if check_zfs_availability; then
-            echo "ZFS kernel support already available - skipping kernel build"
-            return 0
-        fi
+    
+    # First check if ZFS kernel support is already available
+    if check_zfs_availability; then
+        echo "ZFS kernel support already available - skipping kernel build"
+        return 0
     fi
-
+    
     echo "Starting WSL2 custom kernel build with ZFS..."
-
+    
     install_dependencies
     get_kernel_src
+    prepare_kernel
     get_zfs_builtin
     configure_zfs_builtin
     build_kernel
-
+    
     echo "WSL2 kernel with ZFS build complete!"
 }
