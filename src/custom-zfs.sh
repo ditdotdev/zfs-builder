@@ -1,10 +1,44 @@
 #!/usr/bin/env bash
 #
-# Custom ZFS compatibility script for Docker Desktop with ZFS 2.3.4
+# Custom ZFS compatibility script for Docker Desktop
 #
 
 # Modified minimum ZFS version for legacy compatibility
 min_zfs_version=0.8.0
+
+# Query the latest stable OpenZFS release from GitHub.
+# Caches the result for the lifetime of the process to avoid repeated API calls.
+_resolved_zfs_version=""
+function resolve_latest_zfs_version() {
+  if [ -n "$_resolved_zfs_version" ]; then
+    echo "$_resolved_zfs_version"
+    return
+  fi
+
+  local latest=""
+  # GitHub /releases/latest returns the latest non-draft, non-prerelease release
+  latest=$(curl -s --connect-timeout 5 https://api.github.com/repos/openzfs/zfs/releases/latest 2>/dev/null | \
+    grep '"tag_name"' | head -1 | sed 's/.*"zfs-\([^"]*\)".*/\1/')
+
+  if [ -n "$latest" ] && [ "$latest" != "null" ] && echo "$latest" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
+    _resolved_zfs_version="$latest"
+    echo "$latest"
+    return
+  fi
+
+  # Fallback: detect version from installed zfs command
+  if command -v zfs >/dev/null 2>&1; then
+    local installed
+    installed=$(zfs version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+    if [ -n "$installed" ]; then
+      _resolved_zfs_version="$installed"
+      echo "$installed"
+      return
+    fi
+  fi
+
+  echo ""
+}
 
 # Return the tag in the ZFS repository we should be using to build ZFS binaries.
 function get_zfs_build_version() {
@@ -13,15 +47,17 @@ function get_zfs_build_version() {
     echo "$ZFS_BUILD_VERSION"
     return
   fi
-  
-  # Default to a compatible version based on kernel
-  if grep -q "microsoft" /proc/version 2>/dev/null; then
-    # WSL2 - use modern ZFS
-    echo "2.1.5"
-  else
-    # Traditional environments - use stable version
-    echo "2.3.4"  
+
+  # Resolve latest stable release dynamically
+  local latest
+  latest=$(resolve_latest_zfs_version)
+  if [ -n "$latest" ]; then
+    echo "$latest"
+    return
   fi
+
+  # Last resort: hardcoded fallback
+  echo "2.3.4"
 }
 
 # Modified version compatibility for ZFS 0.8.x and 2.x series

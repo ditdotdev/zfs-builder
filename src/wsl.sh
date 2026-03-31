@@ -119,8 +119,15 @@ function get_zfs_builtin() {
     # Create ZFS directory
     mkdir -p $ZFSDIR
     
-    # Use same ZFS version as configured for Datadatdat
-    UPSTREAMZFSVER=${ZFS_VERSION:-zfs-2.1.5}
+    # Use ZFS_VERSION env var, or resolve latest stable from GitHub API
+    if [ -z "$ZFS_VERSION" ]; then
+        local latest
+        latest=$(curl -s --connect-timeout 5 https://api.github.com/repos/openzfs/zfs/releases/latest 2>/dev/null | \
+            grep '"tag_name"' | head -1 | sed 's/.*"\(zfs-[^"]*\)".*/\1/')
+        UPSTREAMZFSVER=${latest:-zfs-2.3.4}
+    else
+        UPSTREAMZFSVER=$ZFS_VERSION
+    fi
     
     # Clone ZFS source if not exists
     if [ ! -d $ZFSDIR/.git ]; then
