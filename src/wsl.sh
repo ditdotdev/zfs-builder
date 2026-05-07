@@ -124,7 +124,7 @@ function get_zfs_builtin() {
         local latest
         latest=$(curl -s --connect-timeout 5 https://api.github.com/repos/openzfs/zfs/releases/latest 2>/dev/null | \
             grep '"tag_name"' | head -1 | sed 's/.*"\(zfs-[^"]*\)".*/\1/')
-        UPSTREAMZFSVER=${latest:-zfs-2.3.4}
+        UPSTREAMZFSVER=${latest:-zfs-2.4.1}
     else
         UPSTREAMZFSVER=$ZFS_VERSION
     fi

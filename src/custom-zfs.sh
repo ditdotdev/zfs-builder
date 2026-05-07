@@ -57,7 +57,7 @@ function get_zfs_build_version() {
   fi
 
   # Last resort: hardcoded fallback
-  echo "2.3.4"
+  echo "2.4.1"
 }
 
 # Modified version compatibility for ZFS 0.8.x and 2.x series

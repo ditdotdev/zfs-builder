@@ -61,4 +61,4 @@ RUN mkdir /out
 
 COPY src/* /
 
-CMD /build.sh
+CMD ["/build.sh"]
