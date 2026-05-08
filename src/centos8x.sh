@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 #
 # Copyright The Datadatdat Project Contributors.
 #
@@ -66,13 +66,14 @@ COPY *.sh /
 COPY centos-vault /etc/yum.repos.d/CentOS-Vault.repo
 CMD /centos-build.sh
 EOF
-    local image_name=zfs-builder-centos:$(generate_random_string 8)
-    cd /docker && docker build -t $image_name .
+    local image_name container_name
+    image_name="zfs-builder-centos:$(generate_random_string 8)"
+    cd /docker && docker build -t "$image_name" .
 
-    local container_name=zfs-builder-$(generate_random_string 8)
-    docker run --name $container_name -e KERNEL_RELEASE=$KERNEL_RELEASE $image_name
-    docker cp $container_name:/build /
+    container_name="zfs-builder-$(generate_random_string 8)"
+    docker run --name "$container_name" -e KERNEL_RELEASE="$KERNEL_RELEASE" "$image_name"
+    docker cp "$container_name:/build" /
 
-    docker rm $container_name
-    docker rmi $image_name
+    docker rm "$container_name"
+    docker rmi "$image_name"
 }

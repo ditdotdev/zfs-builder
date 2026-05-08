@@ -57,27 +57,29 @@ function get_zfs_build_version() {
   fi
 
   # Last resort: hardcoded fallback
-  echo "2.3.4"
+  echo "2.4.1"
 }
 
 # Modified version compatibility for ZFS 0.8.x and 2.x series
 function zfs_version_compatible() {
   [[ -z "$1" ]] && return 1
   local req_version=${1%-*}                       # Trim any trailing "-XYZ" modifier
-  local req_components=(${req_version//./ })      # Replace periods with spaces
-  
+  local req_components
+  IFS='.' read -ra req_components <<< "$req_version"
+
   # For ZFS 0.8.x series, allow any 0.8.x version
   if [[ ${req_components[0]} -eq 0 && ${req_components[1]} -eq 8 ]]; then
     return 0
   fi
-  
+
   # For ZFS 2.x series, allow any 2.x version (modern ZFS)
   if [[ ${req_components[0]} -eq 2 ]]; then
     return 0
   fi
-  
+
   # Original compatibility logic for other versions
-  local min_components=(${min_zfs_version//./ })
+  local min_components
+  IFS='.' read -ra min_components <<< "$min_zfs_version"
   [[ ${min_components[0]} -ne ${req_components[0]} ]] && return 1
   [[ ${min_components[1]} -gt ${req_components[1]} ]] && return 1
   return 0
@@ -86,8 +88,9 @@ function zfs_version_compatible() {
 # Rest of the functions remain the same...
 function zfs_version_matches() {
   local req_version=${1%-*}
-  local build_version=$(get_zfs_build_version)
-  [[ $req_version = $build_version ]]
+  local build_version
+  build_version=$(get_zfs_build_version)
+  [[ $req_version = "$build_version" ]]
 }
 
 function get_asset_url() {
@@ -153,16 +156,16 @@ function load_zfs_module() {
   depmod -b $directory 2>&1 | head -5
   
   echo "Attempting to load ZFS module from $directory..."
-  if ! modprobe -v -d $directory zfs 2>&1; then
+  if ! modprobe -v -d "$directory" zfs 2>&1; then
     echo "modprobe failed - checking module structure:"
-    find $directory/lib/modules/$(uname -r) -name "*.ko" 2>/dev/null | head -10
+    find "$directory/lib/modules/$(uname -r)" -name "*.ko" 2>/dev/null | head -10
     return 1
   fi
   return 0
 }
 
 function get_precompiled_module_url() {
-  get_asset_url zfs-$(get_zfs_build_version)-$(uname -r).tar.gz
+  get_asset_url "zfs-$(get_zfs_build_version)-$(uname -r).tar.gz"
 }
 
 function extract_precompiled_module() {
@@ -176,7 +179,11 @@ function extract_precompiled_module() {
 
 function check_zfs_device() {
   if [[ ! -e /dev/zfs ]]; then
-      mknod -m 660 /dev/zfs c $(cat /sys/class/misc/zfs/dev |sed 's/:/ /g') >/dev/null 2>&1
+      # /sys/class/misc/zfs/dev contains "MAJOR:MINOR"; mknod expects them as separate args
+      local zfs_dev
+      zfs_dev=$(sed 's/:/ /g' /sys/class/misc/zfs/dev)
+      # shellcheck disable=SC2086  # zfs_dev intentionally word-splits into MAJOR MINOR
+      mknod -m 660 /dev/zfs c $zfs_dev >/dev/null 2>&1
   fi
 }
 
@@ -228,8 +235,9 @@ function check_running_zfs() {
   fi
   local retval=1
   if is_zfs_loaded; then
-    local version=$(get_running_zfs_version)
-    if ! zfs_version_compatible $version; then
+    local version
+    version=$(get_running_zfs_version)
+    if ! zfs_version_compatible "$version"; then
       if command -v log_error >/dev/null 2>&1; then
         log_error "System is running ZFS $version incompatible with $(get_zfs_build_version), upgrade and retry"
       else
@@ -289,21 +297,22 @@ function load_zfs() {
 function load_precompiled_zfs() {
   local dstdir=$1
   local install_dir=$2
-  local uname=$(uname -r)
+  local uname asset_url
+  uname=$(uname -r)
   local retval=1
   if command -v log_start >/dev/null 2>&1; then
     log_start "Checking if precompiled ZFS is available for '$uname'"
   else
     echo "Checking if precompiled ZFS is available for '$uname'"
   fi
-  rm -rf $dstdir || return 1
-  mkdir -p $dstdir || return 1
-  local asset_url=$(get_precompiled_module_url)
-  if extract_precompiled_module $asset_url $dstdir; then
+  rm -rf "$dstdir" || return 1
+  mkdir -p "$dstdir" || return 1
+  asset_url=$(get_precompiled_module_url)
+  if extract_precompiled_module "$asset_url" "$dstdir"; then
     echo "Version $uname extracted to $dstdir"
-    if load_zfs_module $dstdir; then
+    if load_zfs_module "$dstdir"; then
       echo "Version $uname loaded"
-      echo $dstdir > $install_dir/installed_zfs
+      echo "$dstdir" > "$install_dir/installed_zfs"
       retval=0
     else
       echo "Failed to load precompiled module"
@@ -345,9 +354,9 @@ function compile_and_load_zfs() {
   mkdir -p $dstdir
   
   # If not built-in, try to build modules
-  docker run --rm -v $dstdir:/build \
+  docker run --rm -v "$dstdir:/build" \
     -v /var/run/docker.sock:/var/run/docker.sock \
-    -e ZFS_VERSION=zfs-$(get_zfs_build_version) \
+    -e ZFS_VERSION="zfs-$(get_zfs_build_version)" \
     -e ZFS_CONFIG=kernel datadatdat/zfs-builder:latest || {
       if command -v log_error >/dev/null 2>&1; then
         log_error "ZFS build failed"
@@ -408,8 +417,9 @@ function check_zfs() {
 
 function unload_zfs() {
   local install_dir=$1
-  if [[ is_zfs_loaded && -f $install_dir/installed_zfs ]]; then
-    local module_location=$(cat $install_dir/installed_zfs)
+  if is_zfs_loaded && [[ -f "$install_dir/installed_zfs" ]]; then
+    local module_location
+    module_location=$(cat "$install_dir/installed_zfs")
     modprobe -d "$module_location" -r zfs || return 1
   fi
   return 0
@@ -417,8 +427,9 @@ function unload_zfs() {
 
 function unmount_filesystems() {
   local pool=$1
-  local dirs=$(mount -t zfs | grep ^$pool | awk '{print $3}' | sort -r)
+  local dirs
+  dirs=$(mount -t zfs | grep "^$pool" | awk '{print $3}' | sort -r)
   for dir in $dirs; do
-     nsenter -m -u -t 1 -n -i umount $dir
+     nsenter -m -u -t 1 -n -i umount "$dir"
   done
 }

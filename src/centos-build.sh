@@ -1,11 +1,12 @@
-﻿#!/bin/bash
+#!/bin/bash
 #
 # Copyright The Datadatdat Project Contributors.
 #
 
 set -xe
 
-. $(dirname $0)/common.sh
+# shellcheck source=src/common.sh
+. "$(dirname "$0")/common.sh"
 
 #
 # This script is invoked within the context of the centos container, so  we can
@@ -13,9 +14,12 @@ set -xe
 #
 CENTOS_KERNEL=${KERNEL_RELEASE%%.x86_64}
 
-yum install -y kernel-devel-$CENTOS_KERNEL kernel-$CENTOS_KERNEL
+yum install -y "kernel-devel-$CENTOS_KERNEL" "kernel-$CENTOS_KERNEL"
 
+# KERNEL_SRC / KERNEL_OBJ are consumed by build_zfs() in common.sh
+# shellcheck disable=SC2034
 KERNEL_SRC=/usr/src/kernels/$KERNEL_RELEASE
+# shellcheck disable=SC2034
 KERNEL_OBJ=/lib/modules/$KERNEL_RELEASE/build
 
 get_zfs_source

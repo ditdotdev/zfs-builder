@@ -4,7 +4,7 @@
 
 # Used to create datadatdat/zfs-builder:latest. Until we update Docker Hub, use this locally to build datadatdat/zfs-builder:latest container.
 
-FROM ubuntu:noble
+FROM ubuntu:26.04
 
 ARG KERNEL_RELEASE=
 ARG KERNEL_UNAME=
@@ -47,11 +47,13 @@ RUN apt-get -y install apt-transport-https \
      curl \
      gnupg2 \
      software-properties-common
-RUN curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg > /tmp/dkey; apt-key add /tmp/dkey
-RUN add-apt-repository \
-   "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") \
-   $(lsb_release -cs) \
-   stable"
+RUN install -m 0755 -d /etc/apt/keyrings && \
+    . /etc/os-release && \
+    curl -fsSL "https://download.docker.com/linux/$ID/gpg" -o /etc/apt/keyrings/docker.asc && \
+    chmod a+r /etc/apt/keyrings/docker.asc
+RUN . /etc/os-release && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/$ID $VERSION_CODENAME stable" \
+    > /etc/apt/sources.list.d/docker.list
 RUN apt-get update
 RUN apt-get -y install docker-ce-cli
 
@@ -61,4 +63,4 @@ RUN mkdir /out
 
 COPY src/* /
 
-CMD /build.sh
+CMD ["/build.sh"]

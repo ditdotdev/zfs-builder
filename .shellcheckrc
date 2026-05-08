@@ -1,0 +1,6 @@
+# Info-level findings (mostly SC2086 unquoted vars in legacy paths) are
+# reported but don't gate CI. Warnings and errors do.
+severity=warning
+
+# Follow `source` directives so cross-file variable usage is understood.
+external-sources=true

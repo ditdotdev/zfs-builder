@@ -11,8 +11,6 @@
 #
 
 function build() {
-    local linuxkit_release
-
     mkdir /docker
     cp /*.sh /docker
 
@@ -41,12 +39,15 @@ RUN tar xf kernel-dev.tar
 COPY *.sh /
 CMD /linuxkit-build.sh
 EOF
-    local image_name=zfs-builder-linuxkit:$(generate_random_string 8)
-    cd /docker && docker build -t $image_name .
-    local container_name=zfs-builder-$(generate_random_string 8)
-    docker run --name $container_name -e KERNEL_RELEASE=$KERNEL_RELEASE -e ZFS_VERSION=$ZFS_VERSION \
-        -e KERNEL_SRC=/src/linux -e KERNEL_OBJ=/lib/modules/$KERNEL_RELEASE/build $image_name
-    docker cp $container_name:/build /
-    docker rm $container_name
-    docker rmi $image_name
+    local image_name container_name
+    image_name="zfs-builder-linuxkit:$(generate_random_string 8)"
+    cd /docker && docker build -t "$image_name" .
+    container_name="zfs-builder-$(generate_random_string 8)"
+    docker run --name "$container_name" \
+        -e KERNEL_RELEASE="$KERNEL_RELEASE" -e ZFS_VERSION="$ZFS_VERSION" \
+        -e KERNEL_SRC=/src/linux -e KERNEL_OBJ="/lib/modules/$KERNEL_RELEASE/build" \
+        "$image_name"
+    docker cp "$container_name:/build" /
+    docker rm "$container_name"
+    docker rmi "$image_name"
 }
