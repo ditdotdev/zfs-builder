@@ -5,7 +5,8 @@
 
 set -xe
 
-. $(dirname $0)/common.sh
+# shellcheck source=src/common.sh
+. "$(dirname "$0")/common.sh"
 
 # Set up kernel header symlinks for LinuxKit
 # LinuxKit extracts kernel headers to /usr/src/linux-headers-$KERNEL_RELEASE/

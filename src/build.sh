@@ -3,9 +3,15 @@
 # Copyright The Datadatdat Project Contributors.
 #
 
+# Variables set here (KERNEL_VERSION, KERNEL_VARIANT, etc.) are consumed by
+# sourced helper scripts. Cross-file usage isn't visible to the linter, so
+# SC2034 (unused) is silenced file-wide.
+# shellcheck disable=SC2034
+
 set -xe
 
-. $(dirname $0)/common.sh
+# shellcheck source=src/common.sh
+. "$(dirname "$0")/common.sh"
 
 # Check if ZFS is already available in the system
 function check_zfs_availability() {
@@ -100,7 +106,8 @@ else
     kernel_type=vanilla
 fi
 
-. $(dirname $0)/$kernel_type.sh
+# shellcheck disable=SC1090  # path is determined dynamically from kernel_type
+. "$(dirname "$0")/$kernel_type.sh"
 build
 
 # Package modules if /output directory is mounted

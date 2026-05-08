@@ -48,51 +48,51 @@ function install_dependencies() {
         dwarves
 }
 
-# Get WSL2 kernel source 
+# Get WSL2 kernel source
 function get_kernel_src() {
-    local version=$KERNEL_VERSION
-
     echo "Fetching Microsoft WSL2 kernel source..."
-    
+
     # Create kernel directory
-    mkdir -p $KERNELDIR
-    
+    mkdir -p "$KERNELDIR"
+
     # Get the latest WSL2 kernel version that matches our running kernel
     # For WSL2, we want to build against the same version we're running
-    UPSTREAMKERNELVER=$(echo $KERNEL_RELEASE | sed 's/-microsoft-standard-WSL2//')
-    
+    UPSTREAMKERNELVER=$(echo "$KERNEL_RELEASE" | sed 's/-microsoft-standard-WSL2//')
+
     # Try to find matching release tag
     WSL2_TAG=$(curl -s https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases | \
         jq -r ".[] | select(.tag_name | contains(\"$UPSTREAMKERNELVER\")) | .tag_name" | head -n1)
-    
+
     if [ -z "$WSL2_TAG" ]; then
         # Fallback to latest release
         WSL2_TAG=$(curl -s https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases/latest | \
             jq -r '.tag_name')
     fi
-    
+
     echo "Using WSL2 kernel version: $WSL2_TAG"
-    
+
     # Clone Microsoft kernel source if not exists
-    if [ ! -d $KERNELDIR/.git ]; then
+    if [ ! -d "$KERNELDIR/.git" ]; then
         echo "Cloning Microsoft WSL2 kernel..."
-        git clone --branch $WSL2_TAG --single-branch --depth 1 \
-            https://github.com/microsoft/WSL2-Linux-Kernel.git $KERNELDIR
+        git clone --branch "$WSL2_TAG" --single-branch --depth 1 \
+            https://github.com/microsoft/WSL2-Linux-Kernel.git "$KERNELDIR"
     else
         echo "Updating existing kernel source..."
-        cd $KERNELDIR
-        git reset --hard && git checkout $WSL2_TAG && git pull
+        cd "$KERNELDIR" || exit 1
+        git reset --hard && git checkout "$WSL2_TAG" && git pull
     fi
-    
+
+    # shellcheck disable=SC2034  # consumed by build_zfs() in common.sh
     KERNEL_SRC=$KERNELDIR
+    # shellcheck disable=SC2034  # consumed by build_zfs() in common.sh
     KERNEL_OBJ=$KERNELDIR
 }
 
 # Prepare kernel source for ZFS compilation
 function prepare_kernel() {
     echo "Preparing kernel source for ZFS compilation..."
-    
-    cd $KERNELDIR
+
+    cd "$KERNELDIR" || exit 1
     
     # Get the kernel config from current running WSL2 kernel
     echo "Copying current kernel configuration..."
@@ -117,8 +117,8 @@ function get_zfs_builtin() {
     echo "Fetching OpenZFS source for built-in compilation..."
     
     # Create ZFS directory
-    mkdir -p $ZFSDIR
-    
+    mkdir -p "$ZFSDIR"
+
     # Use ZFS_VERSION env var, or resolve latest stable from GitHub API
     if [ -z "$ZFS_VERSION" ]; then
         local latest
@@ -128,28 +128,28 @@ function get_zfs_builtin() {
     else
         UPSTREAMZFSVER=$ZFS_VERSION
     fi
-    
+
     # Clone ZFS source if not exists
-    if [ ! -d $ZFSDIR/.git ]; then
+    if [ ! -d "$ZFSDIR/.git" ]; then
         echo "Cloning OpenZFS repository..."
-        git clone --branch $UPSTREAMZFSVER --depth 1 \
-            https://github.com/zfsonlinux/zfs.git $ZFSDIR
+        git clone --branch "$UPSTREAMZFSVER" --depth 1 \
+            https://github.com/zfsonlinux/zfs.git "$ZFSDIR"
     else
         echo "Updating existing ZFS source..."
-        cd $ZFSDIR
-        git reset --hard && git checkout $UPSTREAMZFSVER && git pull
+        cd "$ZFSDIR" || exit 1
+        git reset --hard && git checkout "$UPSTREAMZFSVER" && git pull
     fi
 }
 
 # Configure ZFS for built-in kernel compilation
 function configure_zfs_builtin() {
     echo "Configuring ZFS for built-in kernel compilation..."
-    
-    cd $ZFSDIR
-    
+
+    cd "$ZFSDIR" || exit 1
+
     # Generate configure script
     sh autogen.sh
-    
+
     # Configure ZFS for built-in compilation
     ./configure \
         --prefix=/ \
@@ -157,13 +157,13 @@ function configure_zfs_builtin() {
         --includedir=/usr/include \
         --datarootdir=/usr/share \
         --enable-linux-builtin=yes \
-        --with-linux=$KERNELDIR \
-        --with-linux-obj=$KERNELDIR
-    
+        --with-linux="$KERNELDIR" \
+        --with-linux-obj="$KERNELDIR"
+
     # Copy ZFS source into kernel tree
     echo "Copying ZFS source into kernel tree..."
-    ./copy-builtin $KERNELDIR
-    
+    ./copy-builtin "$KERNELDIR"
+
     # Build and install userspace utilities
     echo "Building ZFS userspace utilities..."
     make -j "$(nproc)"
@@ -173,8 +173,8 @@ function configure_zfs_builtin() {
 # Build WSL2 kernel with ZFS built-in
 function build_kernel() {
     echo "Building WSL2 kernel with ZFS built-in..."
-    
-    cd $KERNELDIR
+
+    cd "$KERNELDIR" || exit 1
     
     # Update kernel config with WSL2 defaults and enable ZFS
     export KCONFIG_CONFIG="Microsoft/config-wsl"

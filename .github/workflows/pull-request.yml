@@ -1,0 +1,120 @@
+#
+# Copyright Datadatdat.
+#
+# On pull request, lint the Dockerfile and shell scripts, build the image
+# multi-arch (verifying it builds cleanly), and run a smoke test that builds
+# ZFS kernel modules and userspace tools against a known-good kernel — the
+# minimum signal that the image actually works, not just that it compiles.
+#
+name: Pull Request
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  lint-dockerfile:
+    name: Lint Dockerfile (hadolint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          config: .hadolint.yaml
+
+  lint-shell:
+    name: Lint shell scripts (shellcheck)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run shellcheck
+        run: |
+          docker run --rm -v "$PWD":/mnt -w /mnt koalaman/shellcheck:stable \
+            --severity=warning --external-sources src/*.sh
+
+  build:
+    name: Build image (${{ matrix.arch }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            platform: linux/amd64
+          - arch: arm64
+            platform: linux/arm64
+    steps:
+      - uses: actions/checkout@v6
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          push: false
+          tags: datadatdat/zfs-builder:pr-${{ matrix.arch }}
+          cache-from: type=gha,scope=${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.arch }}
+
+  smoke-test:
+    name: Build ZFS kernel modules + userspace (6.8.0-64-generic)
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      KERNEL_RELEASE: 6.8.0-64-generic
+      ZFS_VERSION: 2.4.1
+      # uname -a string for the target kernel — see datadatdat/zfs-releases src/6.8.0-64-generic/uname.
+      # Hardcoded here to avoid a cross-repo checkout for one string.
+      KERNEL_UNAME: "Linux ci 6.8.0-64-generic #67-Ubuntu SMP PREEMPT_DYNAMIC Sun Jun 15 20:23:40 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux"
+    steps:
+      - uses: actions/checkout@v6
+      - uses: docker/setup-buildx-action@v4
+      - name: Build zfs-builder (amd64, load locally)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          tags: datadatdat/zfs-builder:smoke
+          cache-from: type=gha,scope=amd64
+      - name: Run zfs-builder for kernel + userspace
+        run: |
+          mkdir -p out
+          docker run --rm \
+            -e KERNEL_RELEASE="$KERNEL_RELEASE" \
+            -e KERNEL_UNAME="$KERNEL_UNAME" \
+            -e ZFS_VERSION="zfs-$ZFS_VERSION" \
+            -e ZFS_CONFIG=all \
+            -v "$PWD/out:/build" \
+            datadatdat/zfs-builder:smoke
+      - name: Verify zfs.ko vermagic matches target kernel
+        run: |
+          docker run --rm -v "$PWD/out:/b" --entrypoint=bash datadatdat/zfs-builder:smoke -c '
+            set -e
+            ko=/b/lib/modules/'"$KERNEL_RELEASE"'/extra/zfs.ko
+            test -f "$ko" || { echo "::error::zfs.ko not produced at $ko"; exit 1; }
+            vermagic=$(modinfo "$ko" | awk -F": +" "/^vermagic:/{print \$2}")
+            echo "vermagic: $vermagic"
+            case "$vermagic" in
+              "'"$KERNEL_RELEASE"'"*) echo "OK: vermagic starts with $KERNEL_RELEASE" ;;
+              *) echo "::error::vermagic mismatch: $vermagic does not start with '"$KERNEL_RELEASE"'"; exit 1 ;;
+            esac
+            modver=$(modinfo "$ko" | awk -F": +" "/^version:/{print \$2}")
+            echo "module version: $modver"
+            case "$modver" in
+              "'"$ZFS_VERSION"'"*) echo "OK: module version starts with $ZFS_VERSION" ;;
+              *) echo "::error::module version $modver does not start with '"$ZFS_VERSION"'"; exit 1 ;;
+            esac
+          '
+      - name: Verify zfs userspace version
+        run: |
+          docker run --rm -v "$PWD/out:/b" --entrypoint=bash datadatdat/zfs-builder:smoke -c '
+            set -e
+            out=$(LD_LIBRARY_PATH=/b/lib /b/sbin/zfs --version 2>&1 | head -1)
+            echo "zfs --version: $out"
+            case "$out" in
+              "zfs-'"$ZFS_VERSION"'"*) echo "OK: userspace is '"$ZFS_VERSION"'" ;;
+              *) echo "::error::userspace version $out does not match '"$ZFS_VERSION"'"; exit 1 ;;
+            esac
+          '

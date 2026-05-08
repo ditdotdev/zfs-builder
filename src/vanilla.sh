@@ -9,14 +9,17 @@ function get_kernel_src() {
 
     # Download Kernel source
     if [ ! -d /src/linux ]; then
-        curl --retry 5 -o /src/linux-$version.tar.xz -L https://www.kernel.org/pub/linux/kernel/v${version%%.*}.x/linux-$version.tar.xz
-        cd /src
-        bsdtar xf linux-$version.tar.xz
-        mv linux-$version linux
-        rm linux-$version.tar.xz
+        curl --retry 5 -o "/src/linux-$version.tar.xz" -L "https://www.kernel.org/pub/linux/kernel/v${version%%.*}.x/linux-$version.tar.xz"
+        cd /src || exit 1
+        bsdtar xf "linux-$version.tar.xz"
+        mv "linux-$version" linux
+        rm "linux-$version.tar.xz"
     fi
 
+    # Consumed by build_zfs() in common.sh
+    # shellcheck disable=SC2034
     KERNEL_SRC=/src/linux
+    # shellcheck disable=SC2034
     KERNEL_OBJ=/src/linux
 }
 
