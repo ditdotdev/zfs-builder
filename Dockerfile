@@ -30,9 +30,6 @@ RUN apt-get install -y                                                       \
 RUN apt-get install -y                                                       \
     python3 python3-dev python3-setuptools
 
-# Linuxkit binaries (such as fixdep) require musl
-RUN apt-get install -y musl
-
 # Tar can fail sometimes on overlayfs, use bsdtar as a workaround
 RUN apt-get install -y libarchive-tools
 

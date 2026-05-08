@@ -63,9 +63,6 @@ function get_kernel_vars() {
 
 function get_kernel_type() {
     case $KERNEL_VARIANT in
-    linuxkit)
-        echo linuxkit
-        ;;
     microsoft-standard*)
         echo wsl
         ;;

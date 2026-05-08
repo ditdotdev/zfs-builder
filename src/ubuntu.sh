@@ -5,7 +5,7 @@
 
 #
 # Map a kernel release string to the Ubuntu codename whose archive ships it.
-# Returns empty for kernels that aren't tied to an Ubuntu release (linuxkit etc.)
+# Returns empty for kernels not tied to an Ubuntu release.
 #
 # Generic kernels live only in their original release. Cloud-variant kernels
 # (azure, aws, gcp) are also backported to the latest LTS as HWE updates, so
