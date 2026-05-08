@@ -87,16 +87,16 @@ function safe_apt_get() {
     local retry=3 count=0
 
     while true; do
-        if timeout 60 apt-get install --download-only -y --fix-missing $*; then
+        if timeout 60 apt-get install --download-only -y --fix-missing "$@"; then
             break
         fi
         if (( count++ == retry )); then
-            printf 'Download $* failed\n' >&2
+            printf 'Download %s failed\n' "$*" >&2
             exit 1
         fi
     done
 
-    apt-get install -y $*
+    apt-get install -y "$@"
 }
 
 #
@@ -124,92 +124,30 @@ function get_kernel() {
     fi
     if [[ -n $kernel_gcc_major ]]; then
         echo "Selecting gcc-$kernel_gcc_major as default cc/gcc"
-        update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-$kernel_gcc_major 100
-        update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-$kernel_gcc_major 100
-        export CC=gcc-$kernel_gcc_major
+        update-alternatives --install /usr/bin/cc cc "/usr/bin/gcc-$kernel_gcc_major" 100
+        update-alternatives --install /usr/bin/gcc gcc "/usr/bin/gcc-$kernel_gcc_major" 100
+        export CC="gcc-$kernel_gcc_major"
     fi
-    
-    # Extract major.minor version (e.g., 6.8.0 -> 6.8) for source package lookup
-    KERNEL_MAJOR_MINOR=$(echo $KERNEL_VERSION | cut -d. -f1,2)
-    KERNEL_MAJOR=$(echo $KERNEL_VERSION | cut -d. -f1)
-    
-    # For standard Ubuntu kernels (including HWE kernels), the headers package
-    # contains everything needed to build modules. Only use linux-source if
-    # headers are insufficient (which is rare).
-    # The headers are always the correct version matching the running kernel.
-    echo "Using kernel headers from /lib/modules/$KERNEL_RELEASE/build"
+
+    # The Ubuntu kernel headers package contains everything needed to build
+    # modules — symbol versions, .config, scripts/, etc. — so we always use
+    # the headers tree directly. KERNEL_SRC and KERNEL_OBJ are consumed by
+    # build_zfs() in common.sh.
+    # shellcheck disable=SC2034  # exported via sourcing
     KERNEL_SRC=/lib/modules/$KERNEL_RELEASE/build
+    # shellcheck disable=SC2034  # exported via sourcing
     KERNEL_OBJ=/lib/modules/$KERNEL_RELEASE/build
-    
-    # Verify the headers have the necessary config
+    echo "Using kernel headers from $KERNEL_SRC"
+
     if [ ! -f "$KERNEL_SRC/.config" ]; then
         echo "ERROR: .config not found in headers at $KERNEL_SRC"
         exit 1
     fi
-    
-    # Check if CONFIG_MODULES is enabled
     if ! grep -q "^CONFIG_MODULES=y" "$KERNEL_SRC/.config"; then
         echo "ERROR: CONFIG_MODULES not enabled in headers .config"
         exit 1
     fi
-    
     echo "Headers verified with CONFIG_MODULES=y at $KERNEL_SRC"
-    
-    # Always use headers - they have the correct symbol versions for the exact kernel build
-    # Legacy linux-source fallback disabled as it causes kernel version mismatches
-    if false; then
-        echo "Found linux-source-$KERNEL_MAJOR_MINOR"
-        safe_apt_get linux-source-$KERNEL_MAJOR_MINOR
-        # Find the actual tar file that was created (may have full version in name)
-        TARBALL=$(ls /usr/src/linux-source-*.tar.bz2 | head -n1)
-        if [ -n "$TARBALL" ]; then
-            cd /usr/src && tar -xjf $(basename $TARBALL)
-            KERNEL_SRC=$(echo $TARBALL | sed 's/.tar.bz2$//')
-            # Prepare the kernel source with config from headers
-            echo "Preparing kernel source with config from headers..."
-            cp /lib/modules/$KERNEL_RELEASE/build/.config $KERNEL_SRC/
-            cd $KERNEL_SRC
-            make scripts
-            make modules_prepare
-            # Copy Module.symvers if it exists in headers
-            if [ -f /lib/modules/$KERNEL_RELEASE/build/Module.symvers ]; then
-                cp /lib/modules/$KERNEL_RELEASE/build/Module.symvers $KERNEL_SRC/
-            fi
-            # Use prepared source for both src and obj
-            KERNEL_OBJ=$KERNEL_SRC
-        else
-            echo "ERROR: No linux-source tarball found in /usr/src"
-            exit 1
-        fi
-    elif false; then
-        echo "Found linux-source-$KERNEL_VERSION"
-        safe_apt_get linux-source-$KERNEL_VERSION
-        # Find the actual tar file that was created
-        TARBALL=$(ls /usr/src/linux-source-*.tar.bz2 | head -n1)
-        if [ -n "$TARBALL" ]; then
-            cd /usr/src && tar -xjf $(basename $TARBALL)
-            KERNEL_SRC=$(echo $TARBALL | sed 's/.tar.bz2$//')
-            # Prepare the kernel source with config from headers
-            echo "Preparing kernel source with config from headers..."
-            cp /lib/modules/$KERNEL_RELEASE/build/.config $KERNEL_SRC/
-            cd $KERNEL_SRC
-            make scripts
-            make modules_prepare
-            # Copy Module.symvers if it exists in headers
-            if [ -f /lib/modules/$KERNEL_RELEASE/build/Module.symvers ]; then
-                cp /lib/modules/$KERNEL_RELEASE/build/Module.symvers $KERNEL_SRC/
-            fi
-            # Use prepared source for both src and obj
-            KERNEL_OBJ=$KERNEL_SRC
-        else
-            echo "ERROR: No linux-source tarball found in /usr/src"
-            exit 1
-        fi
-    else
-        echo "linux-source not available, using headers only"
-        KERNEL_SRC=/lib/modules/$KERNEL_RELEASE/build
-        KERNEL_OBJ=/lib/modules/$KERNEL_RELEASE/build
-    fi
 }
 
 function build() {
