@@ -109,9 +109,15 @@ jobs:
           '
       - name: Verify zfs userspace version
         run: |
+          # zfs --version prints two lines: "zfs-X.Y.Z-N" (userspace) and
+          # "zfs-kmod-X.Y.Z-N" (kernel module, read from /sys/module/zfs/version).
+          # On a host without the kmod loaded — which is the normal case in CI —
+          # the second lookup fails noisily and may print before the userspace
+          # line in 2>&1 order. Filter for "zfs-<digit>" lines so we get the
+          # userspace version regardless of error ordering.
           docker run --rm -v "$PWD/out:/b" --entrypoint=bash datadatdat/zfs-builder:smoke -c '
             set -e
-            out=$(LD_LIBRARY_PATH=/b/lib /b/sbin/zfs --version 2>&1 | head -1)
+            out=$(LD_LIBRARY_PATH=/b/lib /b/sbin/zfs --version 2>&1 | grep -E "^zfs-[0-9]" | head -1)
             echo "zfs --version: $out"
             case "$out" in
               "zfs-'"$ZFS_VERSION"'"*) echo "OK: userspace is '"$ZFS_VERSION"'" ;;
