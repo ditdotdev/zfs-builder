@@ -10,7 +10,7 @@ If you are running CentOS, and are not providing a `centos-release` config file,
 you will need to launch the container in privileged mode in order to access the
 host filesystem, add `--privileged --pid=host`.
 
-If you are performing a LinuxKit or CentOS build, you will need to provide
+If you are performing a CentOS build, you will need to provide
 access to launch docker containers, add `-v /var/run/docker.sock:/var/run/docker.sock`.
 
 To configure the container to buld for a kernel other than the running system,
@@ -19,7 +19,7 @@ the following configuration options are available:
  * `-e ZFS_VERSION=zfs-0.8.0` - Version of ZFS to build. Must correspond to a tag or a
    commit hash in the `zfsonlinux/zfs` github repository. Defaults to the
    latest tag.
- * `-e KERNEL_RELEASE=4.9.125-linuxkit` - Version of the kernel interfaces to use,
+ * `-e KERNEL_RELEASE=6.8.0-64-generic` - Version of the kernel interfaces to use,
    from `uname -r`.
  * `-e KERNEL_UNAME=...` - Complete `uname -a` output identifying the kernel.
  * `-v path:/build` - Output where ZFS binaries (kernel modules and userland
@@ -33,8 +33,6 @@ supports the following operating systems:
 
   * Ubuntu - Does not require any additional configuration. Tested with bionic,
              may or may not work for other releases.
-  * LinuxKit - Requires access to the docker socket. Tested with 4.9.125 and
-             later, may or may not work with other releases.
   * CentOS - Requires access to the docker socket, and either (a) privileged
              host access or (b) `/config/centos-release` from
              `/etc/centos-release`. You may need to add yum repo configuration
@@ -53,9 +51,8 @@ to build the correct version. YMMV, and no guarantees are made that the
 resulting kernel binaries will work.
 
 If you'd like to add support for a new OS, you can look at the different models
-employed by Ubuntu (native download and build within container), LinuxKit
-(download source via container, build locally), and CentOS (download and build
-entirely within container) for different models.
+employed by Ubuntu (native download and build within container) and CentOS
+(download and build entirely within container) for different models.
 
 ## Additional configuration
 

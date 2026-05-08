@@ -1,3 +1,8 @@
 # Shell scripts must use LF endings — CRLF breaks the shebang inside Docker images.
 *.sh text eol=lf
 Dockerfile text eol=lf
+# Lint configs are read by tools that don't tolerate CRLF (shellcheck SC1017).
+.shellcheckrc text eol=lf
+.hadolint.yaml text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf

@@ -16,8 +16,8 @@ The ZFS builder will determine the build strategy based on the kernel variant
 being used. This strategy could build within the running container, could
 fetch pre-existing binaries, or simple build from source. The ZFS builder
 container is always launched with privileges to run other docker containers,
-so that systems that need it (CentOS and LinuxKit, for example) can build
-images and/or run containers.
+so that systems that need it (CentOS, for example) can build images and/or
+run containers.
 
 Each build strategy consists of some combination of:
 
@@ -43,8 +43,8 @@ while CentOS will launch a separate CentOS container to actually do the build.
 There are a number of helper functions in `common.sh` that are used across
 platforms, mostly to fetch and build ZFS source. These can be invoked at the
 appropriate point within the variant-specific build process. For example,
-LinuxKit and Ubuntu invoke them within the build container, while CentOS
-propagates it into a custom container to do the whole build.
+Ubuntu invokes them within the build container, while CentOS propagates it
+into a custom container to do the whole build.
 
 ## Building
 
