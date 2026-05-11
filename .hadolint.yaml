@@ -4,5 +4,6 @@
 ignored:
   - DL3008
 
-# Info-level findings are reported but don't gate CI. Warnings and errors do.
-failure-threshold: warning
+# Info-, warning-, and error-level findings all gate CI. Style-level findings
+# are not gated.
+failure-threshold: info
