@@ -221,17 +221,17 @@ function build_kernel() {
     
     # Make kernel available in /out for extraction
     mkdir -p /out
-    cp arch/x86/boot/bzImage /out/bzImage-$KERNEL_RELEASE-$KERNELSUFFIX
-    
+    cp arch/x86/boot/bzImage /out/bzImage-"$KERNEL_RELEASE"-$KERNELSUFFIX
+
     # Also try to save directly to Windows filesystem if volume is mounted
     if [ -d /mnt/c/ZFSonWSL ]; then
         echo "Saving kernel directly to Windows filesystem..."
-        cp arch/x86/boot/bzImage /mnt/c/ZFSonWSL/bzImage-$KERNEL_RELEASE-$KERNELSUFFIX
+        cp arch/x86/boot/bzImage /mnt/c/ZFSonWSL/bzImage-"$KERNEL_RELEASE"-$KERNELSUFFIX
         cp arch/x86/boot/bzImage /mnt/c/ZFSonWSL/bzImage
-        echo "Kernel saved to: C:\\ZFSonWSL\\bzImage"
+        printf 'Kernel saved to: %s\n' 'C:\ZFSonWSL\bzImage'
     elif [ -d /host/ZFSonWSL ]; then
         echo "Saving kernel to host volume..."
-        cp arch/x86/boot/bzImage /host/ZFSonWSL/bzImage-$KERNEL_RELEASE-$KERNELSUFFIX
+        cp arch/x86/boot/bzImage /host/ZFSonWSL/bzImage-"$KERNEL_RELEASE"-$KERNELSUFFIX
         cp arch/x86/boot/bzImage /host/ZFSonWSL/bzImage
         echo "Kernel saved to host volume: /host/ZFSonWSL/bzImage"
     fi
@@ -242,7 +242,7 @@ function build_kernel() {
     echo "1. Copy the kernel to Windows: /mnt/c/ZFSonWSL/bzImage"
     echo "2. Add to .wslconfig:"
     echo "   [wsl2]"
-    echo "   kernel=C:\\\\ZFSonWSL\\\\bzImage"
+    printf '   kernel=%s\n' 'C:\\ZFSonWSL\\bzImage'
     echo "3. Run: wsl --shutdown"
     echo "4. Restart WSL2"
 }
