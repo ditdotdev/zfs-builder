@@ -59,7 +59,8 @@ RUN apt-get update \
 
 # Add Docker apt repository and install docker-ce-cli. Separate RUN because
 # the apt source has to exist before the install step can resolve the package.
-# hadolint ignore=SC1091  -- /etc/os-release is a runtime file in the image, not source to follow at lint time
+# `. /etc/os-release` sources a runtime file we can't lint statically;
+# SC1091 is globally ignored via .hadolint.yaml.
 RUN install -m 0755 -d /etc/apt/keyrings \
     && . /etc/os-release \
     && curl -fsSL "https://download.docker.com/linux/$ID/gpg" -o /etc/apt/keyrings/docker.asc \
