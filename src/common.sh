@@ -34,5 +34,12 @@ function build_zfs() {
         --with-linux-obj="$KERNEL_OBJ" \
         --with-config="${ZFS_CONFIG:-all}"
     make -j8
+    # zfs-2.4.1's scripts-install-data-hook writes to $DESTDIR/share/zfs/
+    # without ensuring the directory exists. For kernel-only builds the
+    # share/ install steps are skipped, so `make install` never creates
+    # this path and the hook prints an (ignored) error. Pre-create it so
+    # the hook succeeds quietly. No-op for userland builds where make
+    # install would have created the directory itself.
+    mkdir -p /build/share/zfs
     make install DESTDIR=/build
 }
