@@ -1,6 +1,8 @@
-# Info-level findings (mostly SC2086 unquoted vars in legacy paths) are
-# reported but don't gate CI. Warnings and errors do.
-severity=warning
+# Info-, warning-, and error-level findings all gate CI. Style-level
+# findings (e.g. `[[ $? -eq 0 ]]` vs `if cmd; then`) are noisy refactor
+# suggestions and not gated. Add a per-line `# shellcheck disable=SCXXXX`
+# with a one-line rationale if a specific finding is a false positive.
+severity=info
 
 # Follow `source` directives so cross-file variable usage is understood.
 external-sources=true

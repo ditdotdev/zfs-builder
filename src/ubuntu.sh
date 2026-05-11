@@ -37,6 +37,7 @@ function add_kernel_apt_source() {
     [[ -z $codename ]] && return 0
 
     local current_codename
+    # shellcheck disable=SC1091  # /etc/os-release is a runtime file, not a script to follow at lint time
     current_codename=$(. /etc/os-release && echo "$VERSION_CODENAME")
     [[ $codename = "$current_codename" ]] && return 0
 
@@ -54,7 +55,7 @@ function add_kernel_apt_source() {
     esac
 
     echo "Adding $codename apt sources for kernel $KERNEL_RELEASE (container is $current_codename)"
-    cat > /etc/apt/sources.list.d/$codename-kernel.sources <<EOF
+    cat > /etc/apt/sources.list.d/"$codename"-kernel.sources <<EOF
 Types: deb
 URIs: $mirror
 Suites: $codename $codename-updates
@@ -68,7 +69,7 @@ Components: main universe
 Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
 EOF
 
-    cat > /etc/apt/preferences.d/$codename-kernel <<EOF
+    cat > /etc/apt/preferences.d/"$codename"-kernel <<EOF
 Package: linux-modules-* linux-modules-extra-* linux-headers-* linux-image-*
 Pin: release n=$codename
 Pin-Priority: 990
@@ -108,8 +109,8 @@ function get_kernel() {
     apt-get update
     # Install build tools needed for kernel preparation
     safe_apt_get build-essential bc bison flex libelf-dev libssl-dev
-    safe_apt_get linux-modules-$KERNEL_RELEASE
-    safe_apt_get linux-headers-$KERNEL_RELEASE
+    safe_apt_get linux-modules-"$KERNEL_RELEASE"
+    safe_apt_get linux-headers-"$KERNEL_RELEASE"
 
     # Match the gcc major version the kernel was built with — the container's
     # default cc may be too new (e.g. 26.04 ships gcc-15, but a Noble 6.8 kernel
@@ -117,10 +118,10 @@ function get_kernel() {
     # compile test with a misleading "CONFIG_MODULES not defined" error.
     local kernel_gcc_major
     kernel_gcc_major=$(grep -oP 'CONFIG_CC_VERSION_TEXT.*?gcc-\K[0-9]+' \
-        /lib/modules/$KERNEL_RELEASE/build/.config | head -1)
-    if [[ -n $kernel_gcc_major ]] && ! command -v gcc-$kernel_gcc_major >/dev/null; then
+        /lib/modules/"$KERNEL_RELEASE"/build/.config | head -1)
+    if [[ -n $kernel_gcc_major ]] && ! command -v gcc-"$kernel_gcc_major" >/dev/null; then
         echo "Kernel was built with gcc-$kernel_gcc_major; installing it"
-        safe_apt_get gcc-$kernel_gcc_major
+        safe_apt_get gcc-"$kernel_gcc_major"
     fi
     if [[ -n $kernel_gcc_major ]]; then
         echo "Selecting gcc-$kernel_gcc_major as default cc/gcc"

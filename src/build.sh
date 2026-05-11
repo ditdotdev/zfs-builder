@@ -123,7 +123,7 @@ if [ -d /output ]; then
         
         echo "Creating $OUTPUT_FILE..."
         tar -czf "$OUTPUT_FILE" -C /build/lib/modules .
-        echo "✓ Module package created: $(ls -lh $OUTPUT_FILE)"
+        echo "✓ Module package created: $(ls -lh "$OUTPUT_FILE")"
     else
         echo "⚠️  No modules found in /build/lib/modules - skipping packaging"
     fi

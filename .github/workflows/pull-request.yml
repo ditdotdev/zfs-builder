@@ -31,7 +31,7 @@ jobs:
       - name: Run shellcheck
         run: |
           docker run --rm -v "$PWD":/mnt -w /mnt koalaman/shellcheck:stable \
-            --severity=warning --external-sources src/*.sh
+            --severity=info --external-sources src/*.sh
 
   build:
     name: Build image (${{ matrix.arch }})
