@@ -1,8 +1,14 @@
-# Pinning apt-get versions is impractical for a build-toolchain image whose
-# kernel packages (linux-headers-X-Y.Z, etc.) roll forward with the Ubuntu
-# archive. Standard practice for build images.
 ignored:
+  # Pinning apt-get versions is impractical for a build-toolchain image
+  # whose kernel packages (linux-headers-X-Y.Z, etc.) roll forward with
+  # the Ubuntu archive. Standard practice for build images.
   - DL3008
+  # `. /etc/os-release` in the Docker apt-setup RUN reads $ID and
+  # $VERSION_CODENAME at build time. hadolint's embedded shellcheck
+  # can't follow the file statically and emits SC1091. It's a runtime
+  # file in the image, not a script we should resolve at lint time.
+  - SC1091
 
-# Info-level findings are reported but don't gate CI. Warnings and errors do.
-failure-threshold: warning
+# Info-, warning-, and error-level findings all gate CI. Style-level findings
+# are not gated.
+failure-threshold: info
