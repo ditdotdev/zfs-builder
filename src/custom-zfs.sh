@@ -95,7 +95,7 @@ function zfs_version_matches() {
 
 function get_asset_url() {
   local asset_name=$1
-  echo "http://datadatdat-zfs-builds.s3-website-us-west-2.amazonaws.com/$asset_name"
+  echo "http://dit-zfs-builds.s3-website-us-west-2.amazonaws.com/$asset_name"
 }
 
 function is_zfs_loaded() {
@@ -337,7 +337,7 @@ function compile_and_load_zfs() {
     mkdir -p "$install_dir"
     echo "builtin" > "$install_dir"/installed_zfs
 
-    # Create fake module structure to satisfy Datadatdat's load_zfs_module function
+    # Create fake module structure to satisfy Dit's load_zfs_module function
     mkdir -p "$dstdir/lib/modules/$(uname -r)/kernel/fs/zfs"
     # Create a dummy zfs.ko file that indicates built-in
     echo "# ZFS built into kernel" > "$dstdir/lib/modules/$(uname -r)/kernel/fs/zfs/zfs.ko"
@@ -357,7 +357,7 @@ function compile_and_load_zfs() {
   docker run --rm -v "$dstdir:/build" \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -e ZFS_VERSION="zfs-$(get_zfs_build_version)" \
-    -e ZFS_CONFIG=kernel datadatdat/zfs-builder:latest || {
+    -e ZFS_CONFIG=kernel ditdotdev/zfs-builder:latest || {
       if command -v log_error >/dev/null 2>&1; then
         log_error "ZFS build failed"
       else
@@ -388,7 +388,7 @@ function compile_and_load_zfs() {
     # Check if ZFS is actually available in the kernel
     if is_zfs_loaded; then
       echo "Built-in ZFS detected and working"
-      # Create fake module structure for Datadatdat's satisfaction
+      # Create fake module structure for Dit's satisfaction
       mkdir -p "$dstdir/lib/modules/$(uname -r)/kernel/fs/zfs"
       echo "# ZFS built into kernel" > "$dstdir/lib/modules/$(uname -r)/kernel/fs/zfs/zfs.ko"
       echo "$dstdir" > "$install_dir"/installed_zfs

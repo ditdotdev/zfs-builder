@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright The Datadatdat Project Contributors.
+# Copyright The Dit Project Contributors.
 #
 
 # Get vanilla kernel source

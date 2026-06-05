@@ -1,8 +1,8 @@
 #
-# Copyright Datadatdat.
+# Copyright Dit.
 #
 
-# Used to create datadatdat/zfs-builder:latest. Until we update Docker Hub, use this locally to build datadatdat/zfs-builder:latest container.
+# Used to create ditdotdev/zfs-builder:latest. Until we update Docker Hub, use this locally to build ditdotdev/zfs-builder:latest container.
 
 FROM ubuntu:26.04
 

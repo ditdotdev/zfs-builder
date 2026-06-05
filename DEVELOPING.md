@@ -1,7 +1,7 @@
 # ZFS Builder Development
 
 For general information about contributing changes, see the
-[Contributor Guidelines](https://github.com/datadatdat/.github/blob/master/CONTRIBUTING.md).
+[Contributor Guidelines](https://github.com/ditdotdev/.github/blob/master/CONTRIBUTING.md).
 
 ## How it Works
 
@@ -53,13 +53,13 @@ The build process is very simple, just run `docker build -t <tag> .`.
 ## Testing
 
 There are no built-in tests. You can test a variety of platforms using
-the [zfs-releases](https://github.com/datadatdat/zfs-releases) repository. You can
+the [zfs-releases](https://github.com/ditdotdev/zfs-releases) repository. You can
 test a single affected platform or, if you are making broad changes, across
 every known platform.
 
 ## Releasing
 
- This repository is connected to the [datadatdat](https://hub.docker.com/u/datadatdat)
+ This repository is connected to the [dit](https://hub.docker.com/u/ditdotdev)
  DockerHub organization via GitHub actions. It uses the standard DockerHub
  build infrastructure to automatically build new images:
 

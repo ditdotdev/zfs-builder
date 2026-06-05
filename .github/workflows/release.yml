@@ -1,8 +1,8 @@
 #
-# Copyright Datadatdat.
+# Copyright Dit.
 #
 # On tag creation (vX.Y.Z), build the multi-arch image and publish it to
-# Docker Hub at datadatdat/zfs-builder:<tag> and :latest. Then create a
+# Docker Hub at ditdotdev/zfs-builder:<tag> and :latest. Then create a
 # GitHub release with auto-generated notes.
 #
 name: Release
@@ -38,8 +38,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            datadatdat/zfs-builder:${{ steps.extract_tag.outputs.TAG_NAME }}
-            datadatdat/zfs-builder:latest
+            ditdotdev/zfs-builder:${{ steps.extract_tag.outputs.TAG_NAME }}
+            ditdotdev/zfs-builder:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

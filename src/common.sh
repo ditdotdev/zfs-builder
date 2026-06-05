@@ -1,6 +1,6 @@
 # shellcheck shell=bash
 #
-# Copyright The Datadatdat Project Contributors.
+# Copyright The Dit Project Contributors.
 #
 # Sourced by build.sh and other entry-point scripts. No shebang because this
 # file is never executed directly; the directive above tells the linter which

@@ -4,7 +4,7 @@ This image is designed to build ZFS on Linux for any kernel, even those that
 are different from the one running on the host system. To build the latest ZFS
 for the currently running system, run:
 
-    $ docker run -v /:/build datadatdat/zfs-builder:latest
+    $ docker run -v /:/build ditdotdev/zfs-builder:latest
 
 If you are running CentOS, and are not providing a `centos-release` config file,
 you will need to launch the container in privileged mode in order to access the
@@ -71,13 +71,13 @@ has been merged and no longer needs to be built separately.
 
 ## Contributing
 
-The ZFS builder project follows the Datadatdat community best practices:
+The ZFS builder project follows the Dit community best practices:
 
-  * [Contributing](https://github.com/datadatdat/.github/blob/master/CONTRIBUTING.md)
-  * [Code of Conduct](https://github.com/datadatdat/.github/blob/master/CODE_OF_CONDUCT.md)
-  * [Community Support](https://github.com/datadatdat/.github/blob/master/SUPPORT.md)
+  * [Contributing](https://github.com/ditdotdev/.github/blob/master/CONTRIBUTING.md)
+  * [Code of Conduct](https://github.com/ditdotdev/.github/blob/master/CODE_OF_CONDUCT.md)
+  * [Community Support](https://github.com/ditdotdev/.github/blob/master/SUPPORT.md)
 
-It is maintained by the [Datadatdat community maintainers](https://github.com/datadatdat/.github/blob/master/MAINTAINERS.md)
+It is maintained by the [Dit community maintainers](https://github.com/ditdotdev/.github/blob/master/MAINTAINERS.md)
 
 For more information on how it works, and how to build and release new versions,
 see the [Development Guidelines](DEVELOPING.md).
