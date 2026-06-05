@@ -1,5 +1,5 @@
 #
-# Copyright Datadatdat.
+# Copyright Dit.
 #
 # On pull request, lint the Dockerfile and shell scripts, build the image
 # multi-arch (verifying it builds cleanly), and run a smoke test that builds
@@ -53,7 +53,7 @@ jobs:
           context: .
           platforms: ${{ matrix.platform }}
           push: false
-          tags: datadatdat/zfs-builder:pr-${{ matrix.arch }}
+          tags: ditdotdev/zfs-builder:pr-${{ matrix.arch }}
           cache-from: type=gha,scope=${{ matrix.arch }}
           cache-to: type=gha,mode=max,scope=${{ matrix.arch }}
 
@@ -64,7 +64,7 @@ jobs:
     env:
       KERNEL_RELEASE: 6.8.0-64-generic
       ZFS_VERSION: 2.4.1
-      # uname -a string for the target kernel — see datadatdat/zfs-releases src/6.8.0-64-generic/uname.
+      # uname -a string for the target kernel — see ditdotdev/zfs-releases src/6.8.0-64-generic/uname.
       # Hardcoded here to avoid a cross-repo checkout for one string.
       KERNEL_UNAME: "Linux ci 6.8.0-64-generic #67-Ubuntu SMP PREEMPT_DYNAMIC Sun Jun 15 20:23:40 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux"
     steps:
@@ -76,7 +76,7 @@ jobs:
           context: .
           platforms: linux/amd64
           load: true
-          tags: datadatdat/zfs-builder:smoke
+          tags: ditdotdev/zfs-builder:smoke
           cache-from: type=gha,scope=amd64
       - name: Run zfs-builder for kernel + userspace
         run: |
@@ -87,10 +87,10 @@ jobs:
             -e ZFS_VERSION="zfs-$ZFS_VERSION" \
             -e ZFS_CONFIG=all \
             -v "$PWD/out:/build" \
-            datadatdat/zfs-builder:smoke
+            ditdotdev/zfs-builder:smoke
       - name: Verify zfs.ko vermagic matches target kernel
         run: |
-          docker run --rm -v "$PWD/out:/b" --entrypoint=bash datadatdat/zfs-builder:smoke -c '
+          docker run --rm -v "$PWD/out:/b" --entrypoint=bash ditdotdev/zfs-builder:smoke -c '
             set -e
             ko=/b/lib/modules/'"$KERNEL_RELEASE"'/extra/zfs.ko
             test -f "$ko" || { echo "::error::zfs.ko not produced at $ko"; exit 1; }
@@ -115,7 +115,7 @@ jobs:
           # the second lookup fails noisily and may print before the userspace
           # line in 2>&1 order. Filter for "zfs-<digit>" lines so we get the
           # userspace version regardless of error ordering.
-          docker run --rm -v "$PWD/out:/b" --entrypoint=bash datadatdat/zfs-builder:smoke -c '
+          docker run --rm -v "$PWD/out:/b" --entrypoint=bash ditdotdev/zfs-builder:smoke -c '
             set -e
             out=$(LD_LIBRARY_PATH=/b/lib /b/sbin/zfs --version 2>&1 | grep -E "^zfs-[0-9]" | head -1)
             echo "zfs --version: $out"

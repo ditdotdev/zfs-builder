@@ -38,5 +38,5 @@ template: |
 
   ## Docker Images
 
-  - `datadatdat/zfs-builder:$RESOLVED_VERSION`
-  - `datadatdat/zfs-builder:latest`
+  - `ditdotdev/zfs-builder:$RESOLVED_VERSION`
+  - `ditdotdev/zfs-builder:latest`

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright The Datadatdat Project Contributors.
+# Copyright The Dit Project Contributors.
 #
 
 # Variables set here (KERNEL_VERSION, KERNEL_VARIANT, etc.) are consumed by
