@@ -19,7 +19,7 @@ the following configuration options are available:
  * `-e ZFS_VERSION=zfs-0.8.0` - Version of ZFS to build. Must correspond to a tag or a
    commit hash in the `zfsonlinux/zfs` github repository. Defaults to the
    latest tag.
- * `-e KERNEL_RELEASE=6.8.0-64-generic` - Version of the kernel interfaces to use,
+ * `-e KERNEL_RELEASE=6.8.0-101-generic` - Version of the kernel interfaces to use,
    from `uname -r`.
  * `-e KERNEL_UNAME=...` - Complete `uname -a` output identifying the kernel.
  * `-v path:/build` - Output where ZFS binaries (kernel modules and userland
