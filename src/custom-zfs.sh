@@ -95,7 +95,7 @@ function zfs_version_matches() {
 
 function get_asset_url() {
   local asset_name=$1
-  echo "http://dit-zfs-builds.s3-website-us-west-2.amazonaws.com/$asset_name"
+  echo "http://zfs.dit.dev/$asset_name"
 }
 
 function is_zfs_loaded() {
