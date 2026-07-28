@@ -1,6 +1,8 @@
 #!/bin/bash
 #
-# Copyright The Dit Project Contributors.
+# Copyright The Titan Project Contributors.
+# Modifications Copyright Dit 2026.
+# SPDX-License-Identifier: Apache-2.0
 #
 
 set -xe

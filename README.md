@@ -81,3 +81,9 @@ It is maintained by the [Dit community maintainers](https://github.com/ditdotdev
 
 For more information on how it works, and how to build and release new versions,
 see the [Development Guidelines](DEVELOPING.md).
+
+## License
+
+This project is licensed under the [Apache License 2.0](LICENSE). It is
+derived from [titan-data/zfs-builder](https://github.com/titan-data/zfs-builder)
+(Copyright The Titan Project Contributors), with modifications by Dit.

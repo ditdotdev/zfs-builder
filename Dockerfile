@@ -1,5 +1,7 @@
 #
-# Copyright Dit.
+# Copyright The Titan Project Contributors.
+# Modifications Copyright Dit 2026.
+# SPDX-License-Identifier: Apache-2.0
 #
 
 # Used to create ditdotdev/zfs-builder:latest. Until we update Docker Hub, use this locally to build ditdotdev/zfs-builder:latest container.

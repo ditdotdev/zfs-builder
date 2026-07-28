@@ -1,3 +1,6 @@
+# Copyright Dit 2026
+# SPDX-License-Identifier: Apache-2.0
+
 ignored:
   # Pinning apt-get versions is impractical for a build-toolchain image
   # whose kernel packages (linux-headers-X-Y.Z, etc.) roll forward with

@@ -1,6 +1,8 @@
 # shellcheck shell=bash
 #
-# Copyright The Dit Project Contributors.
+# Copyright The Titan Project Contributors.
+# Modifications Copyright Dit 2026.
+# SPDX-License-Identifier: Apache-2.0
 #
 # Sourced by build.sh and other entry-point scripts. No shebang because this
 # file is never executed directly; the directive above tells the linter which
