@@ -93,4 +93,4 @@ This project is derived from
 [titan-data/zfs-builder](https://github.com/titan-data/zfs-builder)
 (Copyright The Titan Project Contributors). Portions inherited from that
 project remain available under the Apache License 2.0 — see
-[LICENSE-APACHE](LICENSE-APACHE).
+[licenses/Apache-2.0.txt](licenses/Apache-2.0.txt).

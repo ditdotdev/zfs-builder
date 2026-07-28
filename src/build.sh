@@ -3,7 +3,7 @@
 # Copyright The Titan Project Contributors.
 # Modifications Copyright Dit 2026.
 # SPDX-License-Identifier: BUSL-1.1
-# Portions derived from titan-data/zfs-builder (Apache-2.0); see LICENSE-APACHE.
+# Portions derived from titan-data/zfs-builder (Apache-2.0); see licenses/Apache-2.0.txt.
 #
 
 # Variables set here (KERNEL_VERSION, KERNEL_VARIANT, etc.) are consumed by
