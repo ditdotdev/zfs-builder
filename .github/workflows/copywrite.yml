@@ -1,5 +1,5 @@
 # Copyright Dit 2026
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 #
 # Validates that all source files carry the required copyright and
 # SPDX license headers, using HashiCorp's copywrite tool and the

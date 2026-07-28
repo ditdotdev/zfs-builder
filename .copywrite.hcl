@@ -1,7 +1,7 @@
 schema_version = 1
 
 project {
-  license          = "Apache-2.0"
+  license          = "BUSL-1.1"
   copyright_holder = "Dit"
   copyright_year   = 2026
 

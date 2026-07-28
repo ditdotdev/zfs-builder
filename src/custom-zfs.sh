@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Copyright Dit 2026
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 #
 # Custom ZFS compatibility script for Docker Desktop
 #

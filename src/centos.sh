@@ -2,7 +2,8 @@
 #
 # Copyright The Titan Project Contributors.
 # Modifications Copyright Dit 2026.
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
+# Portions derived from titan-data/zfs-builder (Apache-2.0); see LICENSE-APACHE.
 #
 
 #

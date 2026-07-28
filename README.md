@@ -84,6 +84,13 @@ see the [Development Guidelines](DEVELOPING.md).
 
 ## License
 
-This project is licensed under the [Apache License 2.0](LICENSE). It is
-derived from [titan-data/zfs-builder](https://github.com/titan-data/zfs-builder)
-(Copyright The Titan Project Contributors), with modifications by Dit.
+This project is licensed under the Business Source License 1.1 (BUSL-1.1).
+On the Change Date (four years from the publication of each version), the
+license for that version converts to the Mozilla Public License 2.0
+(MPL-2.0). See [LICENSE](LICENSE) for the full terms.
+
+This project is derived from
+[titan-data/zfs-builder](https://github.com/titan-data/zfs-builder)
+(Copyright The Titan Project Contributors). Portions inherited from that
+project remain available under the Apache License 2.0 — see
+[LICENSE-APACHE](LICENSE-APACHE).
