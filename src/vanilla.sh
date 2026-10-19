@@ -1,9 +1,7 @@
 #!/bin/bash
 #
-# Copyright The Titan Project Contributors.
-# Modifications Copyright Dit 2026.
+# Copyright Dit Contributors.
 # SPDX-License-Identifier: BUSL-1.1
-# Portions derived from titan-data/zfs-builder (Apache-2.0); see licenses/Apache-2.0.txt.
 #
 
 # Get vanilla kernel source
