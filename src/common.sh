@@ -1,6 +1,6 @@
 # shellcheck shell=bash
 #
-# Copyright Dit Contributors.
+# Copyright Dit 2026
 # SPDX-License-Identifier: BUSL-1.1
 #
 # Sourced by build.sh and other entry-point scripts. No shebang because this
